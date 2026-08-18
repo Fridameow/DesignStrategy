@@ -107,7 +107,7 @@
     h1 { margin: 0 0 18px; font-size: clamp(26px, 3vw, 42px); line-height: 1.08; letter-spacing: -.045em; font-weight: 660; }
     .lede { max-width: 650px; margin: 0 0 25px; color: var(--muted); font-size: 14px; line-height: 1.75; }
 
-    .input-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; max-width: 760px; }
+    .input-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px; max-width: 940px; }
 
     .compound-field {
       display: grid;
@@ -193,6 +193,22 @@
       font-weight: 750;
     }
 
+    .image-extract-trigger {
+      height: 58px;
+      min-width: 150px;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: var(--radius-md);
+      padding: 0 18px;
+      background: rgba(255,255,255,.055);
+      color: #d8dbdd;
+      font-size: 13px;
+      font-weight: 680;
+      cursor: pointer;
+      transition: transform .16s ease, background .16s ease, border-color .16s ease;
+    }
+
+    .image-extract-trigger:hover { transform: translateY(-1px); border-color: rgba(255,255,255,.25); background: rgba(255,255,255,.09); }
+
     .secondary {
       min-height: 42px;
       border: 1px solid rgba(255,255,255,.12);
@@ -239,6 +255,124 @@
     .lch-unit { color: var(--muted); font-size: 12px; }
     .result-actions { display: flex; align-items: center; gap: 10px; }
 
+    body.modal-open { overflow: hidden; }
+    .extract-overlay[hidden] { display: none; }
+    .extract-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(0,0,0,.72);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .extract-dialog {
+      display: flex;
+      flex-direction: column;
+      width: min(1240px, calc(100vw - 40px));
+      max-height: min(900px, calc(100vh - 40px));
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 26px;
+      background: rgba(15,17,19,.94);
+      box-shadow: 0 34px 120px rgba(0,0,0,.68), inset 0 1px rgba(255,255,255,.05);
+    }
+
+    .extract-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding: 22px 24px 18px; border-bottom: 1px solid var(--line); }
+    .extract-header h2 { margin: 0 0 5px; font-size: 20px; letter-spacing: -.025em; }
+    .extract-header p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
+    .extract-close { position: relative; flex: 0 0 auto; width: 36px; height: 36px; border: 1px solid var(--line); border-radius: 11px; padding: 0; background: rgba(255,255,255,.045); color: #c5c9cc; font-size: 0; cursor: pointer; }
+    .extract-close::before, .extract-close::after { content: ""; position: absolute; top: 50%; left: 50%; width: 14px; height: 2px; border-radius: 999px; background: currentColor; transform-origin: center; }
+    .extract-close::before { transform: translate(-50%, -50%) rotate(45deg); }
+    .extract-close::after { transform: translate(-50%, -50%) rotate(-45deg); }
+    .extract-close:hover { background: rgba(255,255,255,.09); }
+
+    .extract-content { display: grid; grid-template-columns: minmax(0, .94fr) minmax(480px, 1.06fr); min-height: 0; overflow: hidden; }
+    .extract-image-pane, .extract-result-pane { min-width: 0; min-height: 0; padding: 22px; }
+    .extract-image-pane { display: flex; flex-direction: column; border-right: 1px solid var(--line); }
+    .extract-result-pane { display: flex; flex-direction: column; overflow: hidden; }
+
+    .extract-upload {
+      position: relative;
+      display: grid;
+      flex: 1;
+      place-items: center;
+      min-height: 430px;
+      overflow: hidden;
+      border: 1px dashed rgba(255,255,255,.2);
+      border-radius: 19px;
+      background: rgba(5,6,7,.48);
+      transition: border-color .16s ease, background .16s ease;
+    }
+
+    .extract-upload.is-dragover { border-color: var(--accent); background: rgba(129,216,208,.08); }
+    .extract-upload.is-busy { pointer-events: none; }
+    .extract-upload.has-image { flex: 0 0 auto; align-self: center; min-width: 0; min-height: 0; background: transparent; }
+    .extract-upload-empty { padding: 30px; color: var(--muted); text-align: center; cursor: pointer; }
+    .extract-upload-empty strong { display: block; margin-bottom: 9px; color: #e1e3e4; font-size: 16px; }
+    .extract-upload-empty span { display: block; font-size: 11px; line-height: 1.7; }
+    .extract-upload-icon { display: grid; place-items: center; width: 52px; height: 52px; margin: 0 auto 16px; border: 1px solid rgba(255,255,255,.14); border-radius: 15px; background: rgba(255,255,255,.055); color: #cdd1d3; font-size: 24px; }
+    .extract-preview { display: none; width: 100%; height: 100%; object-fit: contain; background: transparent; }
+    .extract-upload.has-image .extract-upload-empty { display: none; }
+    .extract-upload.has-image .extract-preview { display: block; }
+    .extract-upload-note { align-self: center; margin: 12px 0 0; color: var(--faint); font-size: 10px; line-height: 1.6; text-align: center; }
+
+    .extract-status { display: flex; align-items: center; gap: 8px; min-height: 28px; margin-top: 10px; color: var(--muted); font-size: 11px; }
+    .extract-status.is-error { color: var(--danger); }
+    .extract-status.is-success { color: #7fd7b0; }
+    .extract-spinner { display: none; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.16); border-top-color: var(--accent); border-radius: 50%; animation: extract-spin .75s linear infinite; }
+    .extract-status.is-loading .extract-spinner { display: inline-block; }
+    @keyframes extract-spin { to { transform: rotate(360deg); } }
+
+    .extract-mode-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 16px; }
+    .extract-mode-label { color: #c8cbce; font-size: 12px; font-weight: 650; }
+    .extract-segmented { display: grid; grid-template-columns: repeat(3, 1fr); width: min(330px, 100%); padding: 3px; border: 1px solid var(--line); border-radius: 12px; background: rgba(0,0,0,.26); }
+    .extract-mode { height: 32px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font-size: 11px; font-weight: 650; cursor: pointer; }
+    .extract-mode.is-active { background: rgba(255,255,255,.11); color: #f2f3f3; box-shadow: 0 3px 10px rgba(0,0,0,.22); }
+
+    .extract-results-workspace { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 16px; min-height: 0; flex: 1; }
+    .extract-stack-panel { display: flex; flex-direction: column; align-items: center; min-height: 0; }
+    .extract-stack-title { margin: 0 0 9px; color: var(--muted); font-size: 10px; }
+    .extract-stack { display: flex; flex: 1; flex-direction: column; width: 70px; min-height: 300px; max-height: 500px; overflow: hidden; border: 1px solid rgba(255,255,255,.14); border-radius: 14px; background: rgba(255,255,255,.045); box-shadow: inset 0 2px 8px rgba(0,0,0,.35); }
+    .extract-stack-segment { position: relative; flex-basis: 0; min-height: 0; border: 0; border-bottom: 1px solid rgba(0,0,0,.2); padding: 0; cursor: pointer; transition: filter .14s ease, box-shadow .14s ease; }
+    .extract-stack-segment:hover, .extract-stack-segment.is-linked { z-index: 1; filter: brightness(1.14) saturate(1.08); box-shadow: inset 0 0 0 2px rgba(255,255,255,.82); }
+    .extract-stack-segment.is-other { background: repeating-linear-gradient(135deg, rgba(151,157,163,.55) 0 6px, rgba(96,101,107,.52) 6px 12px); }
+    .extract-stack-total { margin-top: 8px; color: var(--faint); font-size: 9px; }
+
+    .extract-list-wrap { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+    .extract-list { display: grid; gap: 8px; min-height: 0; overflow: auto; padding-right: 5px; scrollbar-color: rgba(255,255,255,.2) transparent; }
+    .extract-empty-result { display: grid; place-items: center; min-height: 260px; border: 1px dashed var(--line); border-radius: 16px; color: var(--faint); font-size: 12px; text-align: center; }
+    .extract-color-row { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: 12px; min-width: 0; padding: 9px; border: 1px solid rgba(255,255,255,.09); border-radius: 14px; background: rgba(5,6,7,.42); transition: border-color .14s ease, background .14s ease; }
+    .extract-color-row.is-linked { border-color: rgba(255,255,255,.32); background: rgba(255,255,255,.075); }
+    .extract-color-swatch { width: 52px; height: 52px; border-radius: 10px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.22); }
+    .extract-color-meta { min-width: 0; }
+    .extract-color-hex { margin: 0 0 4px; color: #f0f2f2; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; font-weight: 700; letter-spacing: .045em; }
+    .extract-color-lch, .extract-color-share { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.55; }
+    .extract-color-actions { display: grid; gap: 6px; }
+    .extract-add, .extract-delete, .extract-tool {
+      min-height: 31px;
+      border: 1px solid rgba(255,255,255,.11);
+      border-radius: 9px;
+      padding: 0 10px;
+      background: rgba(255,255,255,.055);
+      color: #d6d9db;
+      font-size: 10px;
+      font-weight: 650;
+      cursor: pointer;
+    }
+    .extract-add:hover, .extract-tool:hover { background: rgba(255,255,255,.1); }
+    .extract-add:disabled { color: var(--faint); cursor: default; }
+    .extract-delete { color: #ca8c90; }
+    .extract-delete:hover { border-color: rgba(255,107,114,.25); background: rgba(255,107,114,.08); color: #ff8c92; }
+    .extract-other-row { grid-template-columns: 52px minmax(0, 1fr); }
+    .extract-other-swatch { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 10px; background: repeating-linear-gradient(135deg, rgba(151,157,163,.42) 0 6px, rgba(72,77,82,.46) 6px 12px); color: #d6d8da; font-size: 9px; }
+
+    .extract-footer-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+    .extract-tool:disabled, .extract-mode:disabled { opacity: .42; cursor: not-allowed; }
+
     .charts-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 22px; margin-bottom: 22px; }
     .chart-card { min-width: 0; padding: 24px 24px 20px; border-radius: var(--radius-xl); }
     .card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 12px; }
@@ -283,7 +417,7 @@
 
     .tooltip {
       position: fixed;
-      z-index: 10;
+      z-index: 140;
       max-width: 230px;
       padding: 9px 11px;
       border: 1px solid rgba(255,255,255,.14);
@@ -427,6 +561,7 @@
       .result-card { grid-template-columns: 96px minmax(0, 1fr); min-height: 0; }
       .swatch-large { width: 96px; }
       .library-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .extract-content { grid-template-columns: minmax(0, .86fr) minmax(460px, 1.14fr); }
     }
 
     @media (max-width: 860px) {
@@ -434,6 +569,11 @@
       .charts-grid, .stats-grid { grid-template-columns: 1fr; }
       .library-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .spec { display: none; }
+      .extract-dialog { max-height: calc(100vh - 24px); }
+      .extract-content { grid-template-columns: 1fr; overflow: auto; }
+      .extract-image-pane { min-height: 340px; border-right: 0; border-bottom: 1px solid var(--line); }
+      .extract-upload { min-height: 300px; }
+      .extract-result-pane { min-height: 560px; }
     }
 
     @media (max-width: 560px) {
@@ -442,6 +582,7 @@
       .converter, .chart-card, .library, .stats-card { padding: 18px; border-radius: 22px; }
       .input-row { grid-template-columns: 1fr; }
       .primary { width: 100%; }
+      .image-extract-trigger { width: 100%; }
       .result-card { grid-template-columns: 72px minmax(0, 1fr); gap: 14px; padding: 15px; }
       .swatch-large { width: 72px; border-radius: 15px; }
       .lch-result { white-space: normal; flex-wrap: wrap; }
@@ -453,6 +594,17 @@
       .library-grid { grid-template-columns: 1fr; }
       .stats-row { grid-template-columns: 92px minmax(0, 1fr); gap: 9px; }
       .footnote { flex-direction: column; gap: 5px; }
+      .extract-overlay { padding: 8px; }
+      .extract-dialog { width: calc(100vw - 16px); max-height: calc(100vh - 16px); border-radius: 20px; }
+      .extract-header { padding: 17px; }
+      .extract-image-pane, .extract-result-pane { padding: 16px; }
+      .extract-mode-row { align-items: stretch; flex-direction: column; }
+      .extract-segmented { width: 100%; }
+      .extract-results-workspace { grid-template-columns: 66px minmax(0, 1fr); gap: 10px; }
+      .extract-stack { width: 56px; }
+      .extract-color-row { grid-template-columns: 42px minmax(0, 1fr); }
+      .extract-color-swatch, .extract-other-swatch { width: 42px; height: 42px; }
+      .extract-color-actions { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -487,6 +639,7 @@
             <input id="hexInput" class="hex-field" type="text" value="#81D8D0" maxlength="7" spellcheck="false" autocomplete="off" aria-label="颜色数值" aria-describedby="inputError" />
           </div>
           <button id="convertBtn" class="primary" type="button">转换颜色</button>
+          <button id="openImageExtractBtn" class="image-extract-trigger" type="button">从图片提取颜色</button>
         </div>
         <p id="inputError" class="error" role="status" aria-live="polite"></p>
       </div>
@@ -586,6 +739,65 @@
     </section>
   </div>
 
+  <div id="imageExtractModal" class="extract-overlay" hidden>
+    <section class="extract-dialog" role="dialog" aria-modal="true" aria-labelledby="extract-title">
+      <header class="extract-header">
+        <div>
+          <h2 id="extract-title">从图片提取颜色</h2>
+          <p>在本界面中提取图片主要颜色，请注意，离开该页面后图像信息不保存，请及时将所需颜色添加至色库</p>
+        </div>
+        <button id="closeImageExtractBtn" class="extract-close" type="button" aria-label="关闭图片颜色提取">×</button>
+      </header>
+
+      <div class="extract-content">
+        <section class="extract-image-pane" aria-label="图片上传与预览">
+          <div id="extractDropzone" class="extract-upload" tabindex="0" role="button" aria-label="点击或拖拽上传图片">
+            <div class="extract-upload-empty">
+              <span class="extract-upload-icon" aria-hidden="true">＋</span>
+              <strong>上传图片</strong>
+              <span>点击选择或将图片拖到这里</span>
+              <span>支持 PNG、JPEG、WebP、GIF、BMP、AVIF</span>
+            </div>
+            <img id="extractPreview" class="extract-preview" alt="待分析图片预览" />
+          </div>
+          <input id="extractFileInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/avif" hidden />
+          <p class="extract-upload-note">点击或将新图片拖至选框，上传新图片</p>
+          <div id="extractStatus" class="extract-status" role="status" aria-live="polite">
+            <span class="extract-spinner" aria-hidden="true"></span>
+            <span id="extractStatusText">请上传图片</span>
+          </div>
+        </section>
+
+        <section class="extract-result-pane" aria-label="颜色提取结果">
+          <div class="extract-mode-row">
+            <span class="extract-mode-label">提取模式</span>
+            <div class="extract-segmented" role="group" aria-label="选择颜色提取模式">
+              <button class="extract-mode" type="button" data-mode="compact">精简</button>
+              <button class="extract-mode is-active" type="button" data-mode="standard">标准</button>
+              <button class="extract-mode" type="button" data-mode="rich">丰富</button>
+            </div>
+          </div>
+
+          <div class="extract-results-workspace">
+            <div class="extract-stack-panel">
+              <p class="extract-stack-title">图片占比</p>
+              <div id="extractStack" class="extract-stack" aria-label="颜色比例纵向堆叠图"></div>
+              <span class="extract-stack-total">100.0%</span>
+            </div>
+            <div class="extract-list-wrap">
+              <div id="extractResultList" class="extract-list">
+                <div class="extract-empty-result">色彩生成区</div>
+              </div>
+              <div class="extract-footer-actions">
+                <button id="extractRestoreBtn" class="extract-tool" type="button" disabled>恢复提取结果</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+  </div>
+
   <div id="tooltip" class="tooltip" role="tooltip"></div>
 
   <script>
@@ -594,6 +806,21 @@
 
       const STORAGE_KEY = 'cie-lch-color-atlas-v1';
       const state = { current: null, previewVisible: false, library: loadLibrary() };
+      const extractState = {
+        busy: false,
+        objectUrl: null,
+        bins: null,
+        raster: null,
+        imageAspectRatio: null,
+        totalPixels: 0,
+        mode: 'standard',
+        currentColors: [],
+        otherCount: 0,
+        otherTenths: 1000,
+        originalsByMode: new Map(),
+        analysisToken: 0,
+        returnFocus: null
+      };
       const els = {
         input: document.getElementById('hexInput'), inputType: document.getElementById('inputType'),
         convert: document.getElementById('convertBtn'),
@@ -605,7 +832,50 @@
         count: document.getElementById('libraryCount'), selectAll: document.getElementById('selectAllBtn'),
         clearVisible: document.getElementById('clearVisibleBtn'), tooltip: document.getElementById('tooltip'),
         hueStatsRows: document.getElementById('hueStatsRows'), hueStatsTotal: document.getElementById('hueStatsTotal'),
-        gamutStatsRows: document.getElementById('gamutStatsRows'), gamutStatsTotal: document.getElementById('gamutStatsTotal')
+        gamutStatsRows: document.getElementById('gamutStatsRows'), gamutStatsTotal: document.getElementById('gamutStatsTotal'),
+        openExtract: document.getElementById('openImageExtractBtn'), extractModal: document.getElementById('imageExtractModal'),
+        closeExtract: document.getElementById('closeImageExtractBtn'), extractDropzone: document.getElementById('extractDropzone'),
+        extractFile: document.getElementById('extractFileInput'), extractPreview: document.getElementById('extractPreview'),
+        extractStatus: document.getElementById('extractStatus'),
+        extractStatusText: document.getElementById('extractStatusText'), extractModes: [...document.querySelectorAll('.extract-mode')],
+        extractStack: document.getElementById('extractStack'), extractList: document.getElementById('extractResultList'),
+        extractRestore: document.getElementById('extractRestoreBtn')
+      };
+
+      const EXTRACT_MODE_SETTINGS = {
+        compact: {
+          max: 3, initialClusters: 10, mergeThreshold: 12,
+          toneHueThreshold: 24, vividHueThreshold: 24, toneHueRadiusLimit: 30, toneLightnessRange: 30, toneMergeThreshold: 24, neutralLightnessRange: 16,
+          duplicateHueThreshold: 18,
+          outlierGuardShare: .01, coverageDeltaE: 10,
+          spatialAccentMaxShare: .08, spatialAccentChroma: 32, spatialHueRange: 58, spatialMinChroma: 16, spatialMaxRegionShare: .18,
+          mutedDiversitySlots: 0,
+          forceDistinctAccent: true, forceAccentFamilyShare: .045, forceAccentHueRange: 34,
+          forceAccentRelatedChroma: 18, forceAccentReplacementRatio: .12, forceAccentReplaceMaxChroma: 18,
+          minShare: .045, accentMinShare: .018, accentChroma: 32, accentReplacementRatio: .25
+        },
+        standard: {
+          max: 5, initialClusters: 16, mergeThreshold: 8.5,
+          toneHueThreshold: 20, vividHueThreshold: 20, toneHueRadiusLimit: 24, toneLightnessRange: 25, toneMergeThreshold: 22, neutralLightnessRange: 14,
+          duplicateHueThreshold: 18,
+          outlierGuardShare: .01, coverageDeltaE: 8,
+          spatialAccentMaxShare: .08, spatialAccentChroma: 28, spatialHueRange: 52, spatialMinChroma: 18, spatialMaxRegionShare: .20,
+          mutedDiversitySlots: 2, mutedMinChroma: 1.8, mutedMinShare: .02, mutedCoverageRatio: .62, mutedComponentShare: .00008,
+          mutedVividChroma: 15, mutedMaxVividShare: .14, mutedRequireDominantNeutral: true,
+          mutedDominantNeutralShare: .30, mutedDominantNeutralChroma: 6,
+          minShare: .02, accentMinShare: .012, accentChroma: 28, accentReplacementRatio: .15
+        },
+        rich: {
+          max: 8, initialClusters: 22, mergeThreshold: 6.5,
+          toneHueThreshold: 13, vividHueThreshold: 12, toneHueRadiusLimit: 14, toneLightnessRange: 17, toneMergeThreshold: 15, neutralLightnessRange: 9,
+          duplicateHueThreshold: 10,
+          outlierGuardShare: .01, coverageDeltaE: 7,
+          spatialAccentMaxShare: .07, spatialAccentChroma: 26, spatialHueRange: 52, spatialMinChroma: 16, spatialMaxRegionShare: .16,
+          mutedDiversitySlots: 3, mutedMinChroma: 2.2, mutedMinShare: .004, mutedCoverageRatio: .58, mutedComponentShare: .00008,
+          mutedVividChroma: 15, mutedMaxVividShare: .14, mutedRequireDominantNeutral: false,
+          mutedDominantNeutralShare: .30, mutedDominantNeutralChroma: 6,
+          minShare: .008, accentMinShare: .006, accentChroma: 24, accentReplacementRatio: .12
+        }
       };
 
       const HUE_STATS_CATEGORIES = [
@@ -767,6 +1037,1168 @@
         const rgb = linear.map(compand);
         const hex = '#' + rgb.map(channel => channel.toString(16).padStart(2, '0')).join('').toUpperCase();
         return { hex, rgb, outOfGamut };
+      }
+
+      function rgbToLabComponents(r8, g8, b8) {
+        const linearize = value => {
+          const channel = value / 255;
+          return channel <= 0.04045 ? channel / 12.92 : Math.pow((channel + 0.055) / 1.055, 2.4);
+        };
+        const r = linearize(r8), g = linearize(g8), b = linearize(b8);
+        const x = r * 0.4124564 + g * 0.3575761 + b * 0.1804375;
+        const y = r * 0.2126729 + g * 0.7151522 + b * 0.0721750;
+        const z = r * 0.0193339 + g * 0.1191920 + b * 0.9503041;
+        const fx = labPivot(x / 0.95047), fy = labPivot(y), fz = labPivot(z / 1.08883);
+        return { L: 116 * fy - 16, a: 500 * (fx - fy), b: 200 * (fy - fz) };
+      }
+
+      function buildColorBins(imageData) {
+        const map = new Map();
+        const data = imageData.data;
+        const pixelKeys = new Int32Array(imageData.width * imageData.height);
+        pixelKeys.fill(-1);
+        let totalPixels = 0;
+        for (let i = 0; i < data.length; i += 4) {
+          if (data[i + 3] < 24) continue;
+          const r = data[i], g = data[i + 1], b = data[i + 2];
+          const key = ((r >> 3) << 10) | ((g >> 3) << 5) | (b >> 3);
+          pixelKeys[i / 4] = key;
+          let bin = map.get(key);
+          if (!bin) {
+            bin = { key, count: 0, r: 0, g: 0, b: 0 };
+            map.set(key, bin);
+          }
+          bin.count += 1;
+          bin.r += r;
+          bin.g += g;
+          bin.b += b;
+          totalPixels += 1;
+        }
+
+        const bins = [...map.values()].map(bin => {
+          const r = bin.r / bin.count;
+          const g = bin.g / bin.count;
+          const b = bin.b / bin.count;
+          return { ...rgbToLabComponents(r, g, b), key: bin.key, count: bin.count };
+        }).sort((a, b) => b.count - a.count);
+        return {
+          bins,
+          totalPixels,
+          raster: { width: imageData.width, height: imageData.height, pixelKeys }
+        };
+      }
+
+      function labDistanceSquared(first, second) {
+        const dL = first.L - second.L;
+        const da = first.a - second.a;
+        const db = first.b - second.b;
+        return dL * dL + da * da + db * db;
+      }
+
+      function initializeLabCenters(bins, requestedCount) {
+        if (!bins.length) return [];
+        const count = Math.min(requestedCount, bins.length);
+        const centers = [{ L: bins[0].L, a: bins[0].a, b: bins[0].b }];
+        while (centers.length < count) {
+          let best = null;
+          let bestScore = -1;
+          bins.forEach(bin => {
+            let minDistance = Infinity;
+            centers.forEach(center => { minDistance = Math.min(minDistance, labDistanceSquared(bin, center)); });
+            const score = minDistance * Math.pow(bin.count, .36);
+            if (score > bestScore) { bestScore = score; best = bin; }
+          });
+          if (!best || bestScore < .01) break;
+          centers.push({ L: best.L, a: best.a, b: best.b });
+        }
+        return centers;
+      }
+
+      function weightedLabKMeans(bins, requestedCount) {
+        let centers = initializeLabCenters(bins, requestedCount);
+        if (!centers.length) return [];
+        for (let iteration = 0; iteration < 10; iteration += 1) {
+          const sums = centers.map(() => ({ L: 0, a: 0, b: 0, count: 0 }));
+          bins.forEach(bin => {
+            let bestIndex = 0;
+            let bestDistance = Infinity;
+            centers.forEach((center, index) => {
+              const distance = labDistanceSquared(bin, center);
+              if (distance < bestDistance) { bestDistance = distance; bestIndex = index; }
+            });
+            const sum = sums[bestIndex];
+            sum.L += bin.L * bin.count;
+            sum.a += bin.a * bin.count;
+            sum.b += bin.b * bin.count;
+            sum.count += bin.count;
+          });
+
+          let movement = 0;
+          centers = centers.map((center, index) => {
+            const sum = sums[index];
+            if (!sum.count) return center;
+            const next = { L: sum.L / sum.count, a: sum.a / sum.count, b: sum.b / sum.count };
+            movement += labDistanceSquared(center, next);
+            return next;
+          });
+          if (movement < .015) break;
+        }
+
+        const clusters = centers.map(center => ({ ...center, count: 0, members: [] }));
+        bins.forEach(bin => {
+          let bestIndex = 0;
+          let bestDistance = Infinity;
+          centers.forEach((center, index) => {
+            const distance = labDistanceSquared(bin, center);
+            if (distance < bestDistance) { bestDistance = distance; bestIndex = index; }
+          });
+          const cluster = clusters[bestIndex];
+          const combinedCount = cluster.count + bin.count;
+          cluster.L = (cluster.L * cluster.count + bin.L * bin.count) / combinedCount;
+          cluster.a = (cluster.a * cluster.count + bin.a * bin.count) / combinedCount;
+          cluster.b = (cluster.b * cluster.count + bin.b * bin.count) / combinedCount;
+          cluster.count = combinedCount;
+          cluster.members.push(bin);
+        });
+        return clusters.filter(cluster => cluster.count > 0);
+      }
+
+      function deltaE2000(first, second) {
+        const rad = Math.PI / 180;
+        const deg = 180 / Math.PI;
+        const C1 = Math.hypot(first.a, first.b);
+        const C2 = Math.hypot(second.a, second.b);
+        const meanC = (C1 + C2) / 2;
+        const meanC7 = meanC ** 7;
+        const G = .5 * (1 - Math.sqrt(meanC7 / (meanC7 + 25 ** 7)));
+        const a1p = (1 + G) * first.a;
+        const a2p = (1 + G) * second.a;
+        const C1p = Math.hypot(a1p, first.b);
+        const C2p = Math.hypot(a2p, second.b);
+        const hue = (b, a) => {
+          const value = Math.atan2(b, a) * deg;
+          return value < 0 ? value + 360 : value;
+        };
+        const h1p = C1p < 1e-9 ? 0 : hue(first.b, a1p);
+        const h2p = C2p < 1e-9 ? 0 : hue(second.b, a2p);
+        const dLp = second.L - first.L;
+        const dCp = C2p - C1p;
+        let dhp = h2p - h1p;
+        if (C1p * C2p === 0) dhp = 0;
+        else if (dhp > 180) dhp -= 360;
+        else if (dhp < -180) dhp += 360;
+        const dHp = 2 * Math.sqrt(C1p * C2p) * Math.sin(dhp * rad / 2);
+        const meanLp = (first.L + second.L) / 2;
+        const meanCp = (C1p + C2p) / 2;
+        let meanHp;
+        if (C1p * C2p === 0) meanHp = h1p + h2p;
+        else if (Math.abs(h1p - h2p) <= 180) meanHp = (h1p + h2p) / 2;
+        else if (h1p + h2p < 360) meanHp = (h1p + h2p + 360) / 2;
+        else meanHp = (h1p + h2p - 360) / 2;
+        const T = 1 - .17 * Math.cos((meanHp - 30) * rad) + .24 * Math.cos(2 * meanHp * rad) + .32 * Math.cos((3 * meanHp + 6) * rad) - .20 * Math.cos((4 * meanHp - 63) * rad);
+        const deltaTheta = 30 * Math.exp(-(((meanHp - 275) / 25) ** 2));
+        const Rc = 2 * Math.sqrt(meanCp ** 7 / (meanCp ** 7 + 25 ** 7));
+        const Sl = 1 + .015 * (meanLp - 50) ** 2 / Math.sqrt(20 + (meanLp - 50) ** 2);
+        const Sc = 1 + .045 * meanCp;
+        const Sh = 1 + .015 * meanCp * T;
+        const Rt = -Math.sin(2 * deltaTheta * rad) * Rc;
+        const lTerm = dLp / Sl;
+        const cTerm = dCp / Sc;
+        const hTerm = dHp / Sh;
+        return Math.sqrt(lTerm * lTerm + cTerm * cTerm + hTerm * hTerm + Rt * cTerm * hTerm);
+      }
+
+      function clusterColorMetrics(cluster) {
+        return {
+          C: Math.hypot(cluster.a, cluster.b),
+          h: normalizeHue(Math.atan2(cluster.b, cluster.a) * 180 / Math.PI)
+        };
+      }
+
+      function hueAngleDistance(first, second) {
+        const distance = Math.abs(first - second);
+        return Math.min(distance, 360 - distance);
+      }
+
+      function perceptualHueRegion(hue) {
+        const normalized = normalizeHue(hue);
+        if (normalized < 20 || normalized >= 330) return 'red-magenta';
+        if (normalized < 72) return 'orange';
+        if (normalized < 110) return 'yellow';
+        if (normalized < 180) return 'green';
+        if (normalized < 250) return 'cyan';
+        if (normalized < 285) return 'blue';
+        if (normalized < 315) return 'blue-violet';
+        return 'purple';
+      }
+
+      function combineLabClusters(first, second) {
+        const count = first.count + second.count;
+        const combined = {
+          L: (first.L * first.count + second.L * second.count) / count,
+          a: (first.a * first.count + second.a * second.count) / count,
+          b: (first.b * first.count + second.b * second.count) / count,
+          count,
+          members: [...(first.members || []), ...(second.members || [])]
+        };
+        combined.hueRadius = estimateClusterHueRadius(combined);
+        return combined;
+      }
+
+      function estimateClusterHueRadius(cluster) {
+        const metrics = clusterColorMetrics(cluster);
+        const chromaticMembers = (cluster.members || [])
+          .filter(member => clusterColorMetrics(member).C >= 7);
+        if (!chromaticMembers.length || metrics.C < 7) return 0;
+        return weightedClusterQuantile(
+          chromaticMembers,
+          member => hueAngleDistance(clusterColorMetrics(member).h, metrics.h),
+          .94
+        );
+      }
+
+      function projectedClusterHueRadius(first, second) {
+        const count = first.count + second.count;
+        const combined = {
+          L: (first.L * first.count + second.L * second.count) / count,
+          a: (first.a * first.count + second.a * second.count) / count,
+          b: (first.b * first.count + second.b * second.count) / count
+        };
+        const combinedHue = clusterColorMetrics(combined).h;
+        const firstHue = clusterColorMetrics(first).h;
+        const secondHue = clusterColorMetrics(second).h;
+        return Math.max(
+          hueAngleDistance(combinedHue, firstHue) + (first.hueRadius || 0),
+          hueAngleDistance(combinedHue, secondHue) + (second.hueRadius || 0)
+        );
+      }
+
+      function mergeClustersByRule(clusters, canMerge) {
+        while (clusters.length > 1) {
+          let firstIndex = -1;
+          let secondIndex = -1;
+          let closest = Infinity;
+          for (let i = 0; i < clusters.length - 1; i += 1) {
+            for (let j = i + 1; j < clusters.length; j += 1) {
+              const distance = deltaE2000(clusters[i], clusters[j]);
+              if (distance < closest && canMerge(clusters[i], clusters[j], distance)) {
+                closest = distance;
+                firstIndex = i;
+                secondIndex = j;
+              }
+            }
+          }
+          if (firstIndex < 0) break;
+          clusters[firstIndex] = combineLabClusters(clusters[firstIndex], clusters[secondIndex]);
+          clusters.splice(secondIndex, 1);
+        }
+      }
+
+      function mergeSimilarLabClusters(clusters, settings) {
+        const merged = clusters.map(cluster => {
+          const copy = { ...cluster, members: [...(cluster.members || [])] };
+          copy.hueRadius = estimateClusterHueRadius(copy);
+          return copy;
+        });
+
+        // 先用严格的 CIEDE2000 阈值合并肉眼难以区分的颜色。
+        mergeClustersByRule(merged, (_first, _second, distance) => distance < settings.mergeThreshold);
+
+        // 再合并同一色相中的光照渐变，避免天空、墙面或地面反复占用主色名额。
+        mergeClustersByRule(merged, (first, second, distance) => {
+          const firstMetrics = clusterColorMetrics(first);
+          const secondMetrics = clusterColorMetrics(second);
+          const lightnessDistance = Math.abs(first.L - second.L);
+          const hueDistance = hueAngleDistance(firstMetrics.h, secondMetrics.h);
+          const hueThreshold = Math.min(firstMetrics.C, secondMetrics.C) >= 40
+            ? settings.vividHueThreshold
+            : settings.toneHueThreshold;
+          const samePerceptualRegion = Math.min(firstMetrics.C, secondMetrics.C) < 18
+            || perceptualHueRegion(firstMetrics.h) === perceptualHueRegion(secondMetrics.h);
+          const sameToneFamily = firstMetrics.C >= 7 && secondMetrics.C >= 7
+            && samePerceptualRegion
+            && hueDistance <= hueThreshold
+            && projectedClusterHueRadius(first, second) <= settings.toneHueRadiusLimit
+            && lightnessDistance <= settings.toneLightnessRange
+            && distance <= settings.toneMergeThreshold;
+          const nearbyNeutrals = firstMetrics.C < 7 && secondMetrics.C < 7
+            && lightnessDistance <= settings.neutralLightnessRange;
+          return sameToneFamily || nearbyNeutrals;
+        });
+
+        return merged.sort((a, b) => b.count - a.count);
+      }
+
+      function clustersShareColorFamily(first, second, hueThreshold) {
+        const firstMetrics = clusterColorMetrics(first);
+        const secondMetrics = clusterColorMetrics(second);
+        if (firstMetrics.C < 7 && secondMetrics.C < 7) return Math.abs(first.L - second.L) < 18;
+        if (firstMetrics.C < 7 || secondMetrics.C < 7) return false;
+        if (Math.min(firstMetrics.C, secondMetrics.C) >= 18
+          && perceptualHueRegion(firstMetrics.h) !== perceptualHueRegion(secondMetrics.h)) return false;
+        return hueAngleDistance(firstMetrics.h, secondMetrics.h) <= hueThreshold;
+      }
+
+      function selectMainClusters(clusters, totalPixels, settings) {
+        const selected = clusters
+          .filter(cluster => cluster.count / totalPixels >= settings.minShare)
+          .slice(0, settings.max);
+
+        // 在不改变真实面积占比的前提下，为画面中的高彩度强调色保留机会。
+        // 只有当现有结果包含重复色相时，才用明显不同的强调色替换其中最弱的一项。
+        const accentCandidates = clusters
+          .filter(cluster => !selected.includes(cluster)
+            && cluster.count / totalPixels >= settings.accentMinShare
+            && clusterColorMetrics(cluster).C >= settings.accentChroma)
+          .sort((first, second) => {
+            const firstScore = first.count * (1 + clusterColorMetrics(first).C / 50);
+            const secondScore = second.count * (1 + clusterColorMetrics(second).C / 50);
+            return secondScore - firstScore;
+          });
+
+        accentCandidates.forEach(accent => {
+          if (selected.some(cluster => clustersShareColorFamily(cluster, accent, settings.duplicateHueThreshold))) return;
+          if (selected.length < settings.max) {
+            selected.push(accent);
+            return;
+          }
+          const duplicateIndices = [];
+          selected.forEach((cluster, index) => {
+            if (selected.some((other, otherIndex) => otherIndex !== index
+              && clustersShareColorFamily(cluster, other, settings.duplicateHueThreshold))) {
+              duplicateIndices.push(index);
+            }
+          });
+          if (!duplicateIndices.length) return;
+          duplicateIndices.sort((first, second) => selected[first].count - selected[second].count);
+          const replaceIndex = duplicateIndices[0];
+          if (accent.count >= selected[replaceIndex].count * settings.accentReplacementRatio) {
+            selected[replaceIndex] = accent;
+          }
+        });
+
+        // 精简模式只有三个名额：若三项都被低彩度环境色占据，但画面中存在面积明确的高彩度色相家族，
+        // 为该主体色保留一个名额。家族面积会合并同色相的高光、正色与暗面，后续再由空间连通性恢复真实占比。
+        if (settings.forceDistinctAccent
+          && !selected.some(cluster => clusterColorMetrics(cluster).C >= settings.accentChroma)) {
+          const forcedAccent = accentCandidates.find(accent => {
+            const accentMetrics = clusterColorMetrics(accent);
+            const relatedCount = clusters.reduce((sum, cluster) => {
+              const metrics = clusterColorMetrics(cluster);
+              return metrics.C >= settings.forceAccentRelatedChroma
+                && hueAngleDistance(metrics.h, accentMetrics.h) <= settings.forceAccentHueRange
+                ? sum + cluster.count
+                : sum;
+            }, 0);
+            return relatedCount / totalPixels >= settings.forceAccentFamilyShare;
+          });
+          if (forcedAccent && !selected.includes(forcedAccent)) {
+            const replaceable = selected
+              .map((cluster, index) => ({ cluster, index }))
+              .filter(({ cluster }) => clusterColorMetrics(cluster).C < settings.forceAccentReplaceMaxChroma)
+              .sort((first, second) => first.cluster.count - second.cluster.count);
+            const weakest = replaceable[0];
+            if (weakest
+              && forcedAccent.count >= weakest.cluster.count * settings.forceAccentReplacementRatio) {
+              selected[weakest.index] = forcedAccent;
+            }
+          }
+        }
+
+        return selected.sort((a, b) => b.count - a.count);
+      }
+
+      function weightedClusterQuantile(members, valueForMember, quantile) {
+        const ordered = members
+          .map(member => ({ value: valueForMember(member), count: member.count }))
+          .sort((first, second) => first.value - second.value);
+        const target = ordered.reduce((sum, item) => sum + item.count, 0) * quantile;
+        let accumulated = 0;
+        for (const item of ordered) {
+          accumulated += item.count;
+          if (accumulated >= target) return item.value;
+        }
+        return ordered.length ? ordered[ordered.length - 1].value : 0;
+      }
+
+      function representativeLabFromCluster(cluster) {
+        const members = cluster.members || [];
+        const metrics = clusterColorMetrics(cluster);
+        if (!members.length || metrics.C < 8) return { L: cluster.L, a: cluster.a, b: cluster.b };
+
+        // 渐变色不再直接使用全簇均值，而从真实像素中选择明度、彩度中等偏高的高密度色。
+        const targetL = weightedClusterQuantile(members, member => member.L, .70);
+        const targetC = weightedClusterQuantile(members, member => Math.hypot(member.a, member.b), .72);
+        let seed = members[0];
+        let bestScore = Infinity;
+        members.forEach(member => {
+          const memberMetrics = clusterColorMetrics(member);
+          const lightnessTerm = (member.L - targetL) / 8;
+          const chromaTerm = (memberMetrics.C - targetC) / 9;
+          const hueTerm = hueAngleDistance(memberMetrics.h, metrics.h) / 22;
+          const densityBonus = Math.log1p(member.count) * .12;
+          const score = lightnessTerm * lightnessTerm + chromaTerm * chromaTerm + hueTerm * hueTerm - densityBonus;
+          if (score < bestScore) { bestScore = score; seed = member; }
+        });
+
+        let totalWeight = 0;
+        let L = 0;
+        let a = 0;
+        let b = 0;
+        members.forEach(member => {
+          const distance = deltaE2000(seed, member);
+          if (distance > 8) return;
+          const weight = member.count * Math.exp(-.5 * (distance / 4.5) ** 2);
+          totalWeight += weight;
+          L += member.L * weight;
+          a += member.a * weight;
+          b += member.b * weight;
+        });
+        return totalWeight
+          ? { L: L / totalWeight, a: a / totalWeight, b: b / totalWeight }
+          : { L: seed.L, a: seed.a, b: seed.b };
+      }
+
+      function allocatePercentageTenths(counts, total) {
+        if (!total) return counts.map(() => 0);
+        const exact = counts.map(count => count / total * 1000);
+        const units = exact.map(value => Math.floor(value));
+        let remainder = 1000 - units.reduce((sum, value) => sum + value, 0);
+        const order = exact.map((value, index) => ({ index, fraction: value - units[index] }))
+          .sort((a, b) => b.fraction - a.fraction || a.index - b.index);
+        for (let i = 0; i < remainder; i += 1) units[order[i % order.length].index] += 1;
+        return units;
+      }
+
+      function mutedHueFamily(hue) {
+        const normalized = normalizeHue(hue);
+        if (normalized >= 330 || normalized < 30) return 'red';
+        if (normalized < 60) return 'orange';
+        if (normalized < 100) return 'yellow';
+        if (normalized < 180) return 'green';
+        if (normalized < 245) return 'cyan';
+        if (normalized < 330) return 'blue-purple';
+        return 'red';
+      }
+
+      function injectMutedHueDiversityEntries(entries, bins, raster, totalPixels, settings) {
+        if (!settings.mutedDiversitySlots || !raster || !raster.pixelKeys || !entries.length) return entries;
+        const hasDominantNeutral = entries.some(entry =>
+          entry.count / totalPixels >= settings.mutedDominantNeutralShare
+          && clusterColorMetrics(entry.cluster).C <= settings.mutedDominantNeutralChroma);
+        if (settings.mutedRequireDominantNeutral && !hasDominantNeutral) return entries;
+        const vividPixelCount = bins.reduce((sum, bin) =>
+          sum + (clusterColorMetrics(bin).C >= settings.mutedVividChroma ? bin.count : 0), 0);
+        if (vividPixelCount / totalPixels > settings.mutedMaxVividShare && !hasDominantNeutral) return entries;
+        const { width, height, pixelKeys } = raster;
+        const binByKey = new Map(bins.map(bin => [bin.key, bin]));
+        const groupByKey = new Map();
+        const groupIds = new Set();
+        bins.forEach(bin => {
+          const metrics = clusterColorMetrics(bin);
+          if (metrics.C < settings.mutedMinChroma) return;
+          const family = mutedHueFamily(metrics.h);
+          const tone = bin.L < 55 ? 'dark' : 'light';
+          const groupId = `${family}:${tone}`;
+          groupByKey.set(bin.key, groupId);
+          groupIds.add(groupId);
+        });
+
+        const ownerByKey = new Map();
+        entries.forEach((entry, index) => {
+          (entry.cluster.members || []).forEach(member => ownerByKey.set(member.key, index));
+        });
+        const minimumComponentPixels = Math.max(5, Math.round(totalPixels * settings.mutedComponentShare));
+        const candidates = [];
+
+        groupIds.forEach(groupId => {
+          const keptCounts = new Map();
+          const visited = new Uint8Array(pixelKeys.length);
+          const stack = [];
+          for (let start = 0; start < pixelKeys.length; start += 1) {
+            const startKey = pixelKeys[start];
+            if (visited[start] || startKey < 0 || groupByKey.get(startKey) !== groupId) continue;
+            visited[start] = 1;
+            stack.push(start);
+            const componentKeys = [];
+            while (stack.length) {
+              const pixelIndex = stack.pop();
+              componentKeys.push(pixelKeys[pixelIndex]);
+              const x = pixelIndex % width;
+              const y = Math.floor(pixelIndex / width);
+              for (let dy = -1; dy <= 1; dy += 1) {
+                for (let dx = -1; dx <= 1; dx += 1) {
+                  if (!dx && !dy) continue;
+                  const nextX = x + dx;
+                  const nextY = y + dy;
+                  if (nextX < 0 || nextX >= width || nextY < 0 || nextY >= height) continue;
+                  const next = nextY * width + nextX;
+                  const nextKey = pixelKeys[next];
+                  if (visited[next] || nextKey < 0 || groupByKey.get(nextKey) !== groupId) continue;
+                  visited[next] = 1;
+                  stack.push(next);
+                }
+              }
+            }
+            if (componentKeys.length < minimumComponentPixels) continue;
+            componentKeys.forEach(key => keptCounts.set(key, (keptCounts.get(key) || 0) + 1));
+          }
+
+          const count = [...keptCounts.values()].reduce((sum, value) => sum + value, 0);
+          if (!count || count / totalPixels < settings.mutedMinShare) return;
+          const members = [...keptCounts].map(([key, memberCount]) => ({ ...binByKey.get(key), count: memberCount }));
+          const cluster = members.reduce((accumulator, member) => {
+            accumulator.L += member.L * member.count;
+            accumulator.a += member.a * member.count;
+            accumulator.b += member.b * member.count;
+            return accumulator;
+          }, { L: 0, a: 0, b: 0 });
+          cluster.L /= count;
+          cluster.a /= count;
+          cluster.b /= count;
+          cluster.count = count;
+          cluster.members = members;
+          cluster.preferredRepresentative = { L: cluster.L, a: cluster.a, b: cluster.b };
+          const metrics = clusterColorMetrics(cluster);
+          if (metrics.C < 3.2) return;
+
+          const [family, tone] = groupId.split(':');
+          // 暖色在低彩度图像中通常已由占比排序充分覆盖；额外名额优先补足最容易被综合色吞没的冷色与绿色。
+          if (!['green', 'cyan', 'blue-purple'].includes(family)) return;
+          let representedCount = 0;
+          members.forEach(member => {
+            const ownerIndex = ownerByKey.get(member.key);
+            if (ownerIndex === undefined) return;
+            const owner = entries[ownerIndex];
+            const ownerMetrics = clusterColorMetrics(owner.cluster);
+            const sameTone = (owner.cluster.L < 55 ? 'dark' : 'light') === tone;
+            if (mutedHueFamily(ownerMetrics.h) === family && sameTone
+              && deltaE2000(cluster, owner.cluster) <= 14) representedCount += member.count;
+          });
+          if (representedCount / count >= settings.mutedCoverageRatio) return;
+          const toneBoost = tone === 'light' ? 1.5 : 1;
+          candidates.push({
+            family,
+            tone,
+            cluster,
+            count,
+            score: count * (1 + Math.min(metrics.C, 20) / 10) * toneBoost
+          });
+        });
+
+        const bestByFamily = new Map();
+        candidates.forEach(candidate => {
+          const previous = bestByFamily.get(candidate.family);
+          if (!previous || candidate.score > previous.score) bestByFamily.set(candidate.family, candidate);
+        });
+        const chosen = [...bestByFamily.values()]
+          .sort((first, second) => second.score - first.score)
+          .slice(0, settings.mutedDiversitySlots);
+        if (!chosen.length) return entries;
+
+        let enriched = entries.map(entry => ({ ...entry }));
+        chosen.forEach(candidate => {
+          const candidateCounts = new Map(candidate.cluster.members.map(member => [member.key, member.count]));
+          enriched = enriched.map(entry => {
+            const overlap = (entry.cluster.members || []).reduce((sum, member) =>
+              sum + Math.min(member.count, candidateCounts.get(member.key) || 0), 0);
+            return { ...entry, count: Math.max(0, entry.count - overlap) };
+          }).filter(entry => entry.count > 0);
+          enriched.push({
+            cluster: candidate.cluster,
+            count: candidate.count,
+            protectedMuted: true
+          });
+        });
+
+        while (enriched.length > settings.max) {
+          let removeIndex = -1;
+          let weakestScore = Infinity;
+          enriched.forEach((entry, index) => {
+            if (entry.protectedMuted) return;
+            const metrics = clusterColorMetrics(entry.cluster);
+            const family = mutedHueFamily(metrics.h);
+            const tone = entry.cluster.L < 55 ? 'dark' : 'light';
+            const duplicate = enriched.some((other, otherIndex) => {
+              if (otherIndex === index) return false;
+              const otherMetrics = clusterColorMetrics(other.cluster);
+              return mutedHueFamily(otherMetrics.h) === family
+                && (other.cluster.L < 55 ? 'dark' : 'light') === tone;
+            });
+            const diversityPenalty = duplicate ? .45 : metrics.C < 7 ? .7 : 1;
+            const score = entry.count * (1 + Math.min(metrics.C, 30) / 18) * diversityPenalty;
+            if (score < weakestScore) { weakestScore = score; removeIndex = index; }
+          });
+          if (removeIndex < 0) break;
+          enriched.splice(removeIndex, 1);
+        }
+        return enriched.sort((first, second) => second.count - first.count);
+      }
+
+      function expandSpatialAccentEntries(entries, bins, raster, totalPixels, settings) {
+        if (!raster || !raster.pixelKeys || !raster.width || !raster.height || !entries.length) return entries;
+        const { width, height, pixelKeys } = raster;
+        if (pixelKeys.length !== width * height) return entries;
+
+        const binByKey = new Map(bins.map(bin => [bin.key, bin]));
+        const ownerByKey = new Map();
+        entries.forEach((entry, index) => {
+          (entry.cluster.members || []).forEach(member => ownerByKey.set(member.key, index));
+        });
+        const ownerByPixel = new Int16Array(pixelKeys.length);
+        ownerByPixel.fill(-1);
+        for (let index = 0; index < pixelKeys.length; index += 1) {
+          if (pixelKeys[index] >= 0 && ownerByKey.has(pixelKeys[index])) ownerByPixel[index] = ownerByKey.get(pixelKeys[index]);
+        }
+
+        const claimedByPixel = new Int16Array(pixelKeys.length);
+        claimedByPixel.fill(-1);
+        const minimumSeedPixels = Math.max(8, Math.round(totalPixels * .00015));
+        const accentIndices = entries.map((entry, index) => ({ entry, index }))
+          .filter(({ entry }) => {
+            const metrics = clusterColorMetrics(entry.cluster);
+            const share = entry.count / totalPixels;
+            return metrics.C >= settings.spatialAccentChroma
+              && share >= settings.accentMinShare
+              && share <= settings.spatialAccentMaxShare;
+          })
+          .sort((first, second) => second.entry.count - first.entry.count);
+
+        accentIndices.forEach(({ entry, index: accentIndex }) => {
+          const accentMetrics = clusterColorMetrics(entry.cluster);
+          const candidateByKey = new Map();
+          bins.forEach(bin => {
+            const metrics = clusterColorMetrics(bin);
+            candidateByKey.set(bin.key, metrics.C >= settings.spatialMinChroma
+              && hueAngleDistance(metrics.h, accentMetrics.h) <= settings.spatialHueRange);
+          });
+
+          const visited = new Uint8Array(pixelKeys.length);
+          const stack = [];
+          for (let start = 0; start < pixelKeys.length; start += 1) {
+            const startKey = pixelKeys[start];
+            if (visited[start] || startKey < 0 || !candidateByKey.get(startKey)) continue;
+            visited[start] = 1;
+            stack.push(start);
+            const component = [];
+            let seedCount = 0;
+            while (stack.length) {
+              const pixelIndex = stack.pop();
+              component.push(pixelIndex);
+              if (ownerByPixel[pixelIndex] === accentIndex) seedCount += 1;
+              const x = pixelIndex % width;
+              const y = Math.floor(pixelIndex / width);
+              for (let dy = -1; dy <= 1; dy += 1) {
+                for (let dx = -1; dx <= 1; dx += 1) {
+                  if (!dx && !dy) continue;
+                  const nextX = x + dx;
+                  const nextY = y + dy;
+                  if (nextX < 0 || nextX >= width || nextY < 0 || nextY >= height) continue;
+                  const next = nextY * width + nextX;
+                  const nextKey = pixelKeys[next];
+                  if (visited[next] || nextKey < 0 || !candidateByKey.get(nextKey)) continue;
+                  visited[next] = 1;
+                  stack.push(next);
+                }
+              }
+            }
+
+            const componentShare = component.length / totalPixels;
+            const seedRatio = component.length ? seedCount / component.length : 0;
+            if (seedCount < minimumSeedPixels || seedRatio < .055 || componentShare > settings.spatialMaxRegionShare) continue;
+            component.forEach(pixelIndex => {
+              if (claimedByPixel[pixelIndex] < 0 || ownerByPixel[pixelIndex] === accentIndex) claimedByPixel[pixelIndex] = accentIndex;
+            });
+          }
+        });
+
+        if (!claimedByPixel.some(index => index >= 0)) return entries;
+        const counts = entries.map(() => 0);
+        for (let index = 0; index < pixelKeys.length; index += 1) {
+          if (pixelKeys[index] < 0) continue;
+          const owner = claimedByPixel[index] >= 0 ? claimedByPixel[index] : ownerByPixel[index];
+          if (owner >= 0) counts[owner] += 1;
+        }
+        return entries.map((entry, index) => ({ ...entry, count: counts[index] }))
+          .filter(entry => entry.count > 0)
+          .sort((first, second) => second.count - first.count);
+      }
+
+      function analyzeColorBins(bins, totalPixels, mode, raster = null) {
+        const settings = EXTRACT_MODE_SETTINGS[mode];
+        const initial = weightedLabKMeans(bins, settings.initialClusters);
+        const merged = mergeSimilarLabClusters(initial, settings);
+        let selected = selectMainClusters(merged, totalPixels, settings);
+        if (!selected.length && merged.length) selected = [merged[0]];
+
+        let entries = selected.map(cluster => ({ cluster, count: cluster.count }));
+        entries = expandSpatialAccentEntries(entries, bins, raster, totalPixels, settings);
+        entries = injectMutedHueDiversityEntries(entries, bins, raster, totalPixels, settings);
+        let selectedCount = entries.reduce((sum, entry) => sum + entry.count, 0);
+        let otherCount = Math.max(0, totalPixels - selectedCount);
+
+        // 当若干宽色簇几乎吞掉整张图片时，将簇内与中心感知差异明显的杂色重新计入“其他颜色”。
+        // 这避免综合色调统一的壁画、旧照片等错误显示“其他颜色 0%”，同时不改变正常图片已有的主色比例。
+        if (totalPixels && otherCount / totalPixels <= settings.outlierGuardShare) {
+          entries = entries.map(entry => ({
+            ...entry,
+            // 高彩度颜色中的高光、暗面仍属于同一物体色，不再因明度差异被误判为杂色。
+            // 仅对容易吞并少量综合色的低彩度宽簇执行严格的 ΔE 覆盖检查。
+            count: clusterColorMetrics(entry.cluster).C >= 18
+              ? entry.count
+              : (entry.cluster.members || []).reduce((sum, member) =>
+                sum + (deltaE2000(entry.cluster, member) <= settings.coverageDeltaE ? member.count : 0), 0)
+          })).filter(entry => entry.count > 0)
+            .sort((first, second) => second.count - first.count);
+          selectedCount = entries.reduce((sum, entry) => sum + entry.count, 0);
+          otherCount = Math.max(0, totalPixels - selectedCount);
+        }
+
+        const tenths = allocatePercentageTenths([...entries.map(entry => entry.count), otherCount], totalPixels);
+        const colors = entries.map((entry, index) => {
+          const { cluster } = entry;
+          const representative = cluster.preferredRepresentative || representativeLabFromCluster(cluster);
+          const C = Math.hypot(representative.a, representative.b);
+          const h = normalizeHue(Math.atan2(representative.b, representative.a) * 180 / Math.PI);
+          const preview = labToDisplayColor(representative.L, representative.a, representative.b);
+          return {
+            id: `${mode}-${index}-${preview.hex.slice(1)}`,
+            hex: preview.hex,
+            rgb: preview.rgb,
+            L: representative.L,
+            C,
+            h,
+            count: entry.count,
+            displayTenths: tenths[index],
+            outOfGamut: preview.outOfGamut
+          };
+        });
+        return { colors, otherCount, otherTenths: tenths[tenths.length - 1] };
+      }
+
+      function cloneExtractAnalysis(analysis) {
+        return {
+          colors: analysis.colors.map(color => ({ ...color })),
+          otherCount: analysis.otherCount,
+          otherTenths: analysis.otherTenths
+        };
+      }
+
+      function nextPaint() {
+        return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      }
+
+      function setExtractStatus(message, type = '') {
+        els.extractStatus.classList.toggle('is-loading', type === 'loading');
+        els.extractStatus.classList.toggle('is-error', type === 'error');
+        els.extractStatus.classList.toggle('is-success', type === 'success');
+        els.extractStatusText.textContent = message;
+      }
+
+      function syncExtractControls() {
+        const hasOriginal = extractState.originalsByMode.has(extractState.mode);
+        els.extractFile.disabled = extractState.busy;
+        els.extractDropzone.classList.toggle('is-busy', extractState.busy);
+        els.extractDropzone.setAttribute('aria-disabled', String(extractState.busy));
+        els.extractModes.forEach(button => { button.disabled = extractState.busy; });
+        els.extractRestore.disabled = extractState.busy || !hasOriginal;
+        els.extractList.querySelectorAll('.extract-delete').forEach(button => { button.disabled = extractState.busy; });
+        els.extractList.querySelectorAll('.extract-add').forEach(button => {
+          button.disabled = extractState.busy;
+        });
+      }
+
+      function setExtractBusy(busy) {
+        extractState.busy = busy;
+        syncExtractControls();
+      }
+
+      function resizeExtractPreviewFrame() {
+        if (!extractState.imageAspectRatio || !els.extractDropzone.classList.contains('has-image')) return;
+        const pane = els.extractDropzone.parentElement;
+        const paneStyle = getComputedStyle(pane);
+        const horizontalPadding = parseFloat(paneStyle.paddingLeft) + parseFloat(paneStyle.paddingRight);
+        const maxWidth = Math.max(160, pane.clientWidth - horizontalPadding);
+        const maxHeight = Math.max(220, Math.min(720, window.innerHeight - 230));
+        let width = maxWidth;
+        let height = width / extractState.imageAspectRatio;
+        if (height > maxHeight) {
+          height = maxHeight;
+          width = height * extractState.imageAspectRatio;
+        }
+        els.extractDropzone.style.width = `${Math.round(width)}px`;
+        els.extractDropzone.style.height = `${Math.round(height)}px`;
+      }
+
+      function clearExtractPreviewFrame() {
+        extractState.imageAspectRatio = null;
+        els.extractDropzone.style.removeProperty('width');
+        els.extractDropzone.style.removeProperty('height');
+      }
+
+      function resetImageExtractSession() {
+        extractState.analysisToken += 1;
+        if (extractState.objectUrl) URL.revokeObjectURL(extractState.objectUrl);
+        extractState.objectUrl = null;
+        extractState.bins = null;
+        extractState.raster = null;
+        clearExtractPreviewFrame();
+        extractState.totalPixels = 0;
+        extractState.mode = 'standard';
+        extractState.currentColors = [];
+        extractState.otherCount = 0;
+        extractState.otherTenths = 1000;
+        extractState.originalsByMode.clear();
+        extractState.busy = false;
+        els.extractFile.value = '';
+        els.extractPreview.removeAttribute('src');
+        els.extractDropzone.classList.remove('has-image', 'is-dragover', 'is-busy');
+        els.extractModes.forEach(button => button.classList.toggle('is-active', button.dataset.mode === 'standard'));
+        els.extractStack.replaceChildren();
+        els.extractList.innerHTML = '<div class="extract-empty-result">色彩生成区</div>';
+        setExtractStatus('请上传图片');
+        syncExtractControls();
+        hideTooltip();
+      }
+
+      function openImageExtractModal() {
+        extractState.returnFocus = document.activeElement;
+        resetImageExtractSession();
+        els.extractModal.hidden = false;
+        document.body.classList.add('modal-open');
+        els.closeExtract.focus();
+      }
+
+      function closeImageExtractModal() {
+        const returnFocus = extractState.returnFocus;
+        resetImageExtractSession();
+        els.extractModal.hidden = true;
+        document.body.classList.remove('modal-open');
+        extractState.returnFocus = null;
+        if (returnFocus && typeof returnFocus.focus === 'function') returnFocus.focus();
+      }
+
+      function imageLoadError(code) {
+        const error = new Error(code);
+        error.code = code;
+        return error;
+      }
+
+      function loadImageElement(url) {
+        return new Promise((resolve, reject) => {
+          const image = new Image();
+          image.onload = () => resolve(image);
+          image.onerror = () => reject(imageLoadError('read'));
+          image.src = url;
+        });
+      }
+
+      async function decodeAndSampleImage(file, objectUrl) {
+        const supportedTypes = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/bmp', 'image/avif']);
+        const supportedExtensions = /\.(png|jpe?g|webp|gif|bmp|avif)$/i;
+        const fileType = String(file && file.type || '').toLowerCase();
+        if (!file || !(supportedTypes.has(fileType) || (!fileType && supportedExtensions.test(file.name)))) throw imageLoadError('format');
+
+        let source;
+        let shouldClose = false;
+        try {
+          if ('createImageBitmap' in window) {
+            source = await createImageBitmap(file);
+            shouldClose = true;
+          } else {
+            source = await loadImageElement(objectUrl);
+          }
+        } catch (error) {
+          if (error && error.code === 'read') throw error;
+          try { source = await loadImageElement(objectUrl); }
+          catch (_) { throw imageLoadError('read'); }
+        }
+
+        const sourceWidth = source.width || source.naturalWidth;
+        const sourceHeight = source.height || source.naturalHeight;
+        if (!sourceWidth || !sourceHeight) {
+          if (shouldClose && source.close) source.close();
+          throw imageLoadError('read');
+        }
+        const maxSide = 420;
+        const scale = Math.min(1, maxSide / Math.max(sourceWidth, sourceHeight));
+        const width = Math.max(1, Math.round(sourceWidth * scale));
+        const height = Math.max(1, Math.round(sourceHeight * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const context = canvas.getContext('2d', { alpha: true, willReadFrequently: true });
+        if (!context) {
+          if (shouldClose && source.close) source.close();
+          throw imageLoadError('read');
+        }
+        context.imageSmoothingEnabled = true;
+        context.imageSmoothingQuality = 'high';
+        context.clearRect(0, 0, width, height);
+        context.drawImage(source, 0, 0, width, height);
+        if (shouldClose && source.close) source.close();
+        let imageData;
+        try { imageData = context.getImageData(0, 0, width, height); }
+        catch (_) { throw imageLoadError('read'); }
+        return {
+          ...buildColorBins(imageData),
+          imageAspectRatio: sourceWidth / sourceHeight
+        };
+      }
+
+      function applyExtractAnalysis(analysis) {
+        const copy = cloneExtractAnalysis(analysis);
+        extractState.currentColors = copy.colors;
+        extractState.otherCount = copy.otherCount;
+        extractState.otherTenths = copy.otherTenths;
+        renderExtractResults();
+      }
+
+      async function runExtractAnalysis(force = false) {
+        if (extractState.busy || !extractState.bins || !extractState.totalPixels) return;
+        const mode = extractState.mode;
+        const token = ++extractState.analysisToken;
+        setExtractBusy(true);
+        setExtractStatus('正在分析颜色', 'loading');
+        await nextPaint();
+        if (token !== extractState.analysisToken || els.extractModal.hidden) return;
+
+        try {
+          let analysis = !force ? extractState.originalsByMode.get(mode) : null;
+          if (!analysis) {
+            analysis = analyzeColorBins(extractState.bins, extractState.totalPixels, mode, extractState.raster);
+            extractState.originalsByMode.set(mode, cloneExtractAnalysis(analysis));
+          }
+          applyExtractAnalysis(analysis);
+          setExtractStatus('分析完成', 'success');
+        } catch (_) {
+          extractState.currentColors = [];
+          extractState.otherCount = extractState.totalPixels;
+          extractState.otherTenths = 1000;
+          renderExtractResults();
+          setExtractStatus('图片读取失败', 'error');
+        } finally {
+          if (token === extractState.analysisToken && !els.extractModal.hidden) setExtractBusy(false);
+        }
+      }
+
+      async function handleExtractFile(file) {
+        if (extractState.busy || !file) return;
+        const token = ++extractState.analysisToken;
+        setExtractBusy(true);
+        setExtractStatus('图片读取中', 'loading');
+        hideTooltip();
+
+        if (extractState.objectUrl) URL.revokeObjectURL(extractState.objectUrl);
+        extractState.objectUrl = URL.createObjectURL(file);
+        extractState.bins = null;
+        extractState.raster = null;
+        clearExtractPreviewFrame();
+        extractState.totalPixels = 0;
+        extractState.currentColors = [];
+        extractState.otherCount = 0;
+        extractState.otherTenths = 1000;
+        extractState.originalsByMode.clear();
+        els.extractPreview.src = extractState.objectUrl;
+        els.extractDropzone.classList.remove('has-image');
+        els.extractStack.replaceChildren();
+        els.extractList.innerHTML = '<div class="extract-empty-result">图片读取中</div>';
+        await nextPaint();
+
+        try {
+          const sampled = await decodeAndSampleImage(file, extractState.objectUrl);
+          if (token !== extractState.analysisToken || els.extractModal.hidden) return;
+          extractState.imageAspectRatio = sampled.imageAspectRatio;
+          els.extractDropzone.classList.add('has-image');
+          resizeExtractPreviewFrame();
+          if (sampled.totalPixels < 32 || !sampled.bins.length) throw imageLoadError('pixels');
+          extractState.bins = sampled.bins;
+          extractState.raster = sampled.raster;
+          extractState.totalPixels = sampled.totalPixels;
+          setExtractBusy(false);
+          await runExtractAnalysis(false);
+        } catch (error) {
+          if (token !== extractState.analysisToken || els.extractModal.hidden) return;
+          extractState.bins = null;
+          extractState.raster = null;
+          extractState.totalPixels = 0;
+          extractState.currentColors = [];
+          extractState.otherCount = 0;
+          extractState.otherTenths = 1000;
+          extractState.originalsByMode.clear();
+          els.extractStack.replaceChildren();
+          els.extractList.innerHTML = '<div class="extract-empty-result">未能生成颜色结果</div>';
+          const message = error && error.code === 'format'
+            ? '图片格式不支持'
+            : error && error.code === 'pixels' ? '没有足够的有效像素' : '图片读取失败';
+          if (!error || error.code !== 'pixels') {
+            if (extractState.objectUrl) URL.revokeObjectURL(extractState.objectUrl);
+            extractState.objectUrl = null;
+            els.extractPreview.removeAttribute('src');
+            els.extractDropzone.classList.remove('has-image');
+            clearExtractPreviewFrame();
+          }
+          setExtractStatus(message, 'error');
+          setExtractBusy(false);
+        }
+      }
+
+      function setExtractLinked(id, linked) {
+        els.extractStack.querySelectorAll(`[data-color-id="${id}"]`).forEach(node => node.classList.toggle('is-linked', linked));
+        els.extractList.querySelectorAll(`[data-color-id="${id}"]`).forEach(node => node.classList.toggle('is-linked', linked));
+      }
+
+      function attachExtractHover(node, id, tooltipText) {
+        node.addEventListener('pointerenter', event => {
+          setExtractLinked(id, true);
+          showTooltip(event, tooltipText);
+        });
+        node.addEventListener('pointermove', moveTooltip);
+        node.addEventListener('pointerleave', () => {
+          setExtractLinked(id, false);
+          hideTooltip();
+        });
+        node.addEventListener('focus', event => {
+          setExtractLinked(id, true);
+          showTooltip(event, tooltipText);
+        });
+        node.addEventListener('blur', () => {
+          setExtractLinked(id, false);
+          hideTooltip();
+        });
+      }
+
+      function extractColorTooltip(color) {
+        return `RGB ${color.hex}<br>${pointLabel(color)}<br>图片占比 ${(color.displayTenths / 10).toFixed(1)}%`;
+      }
+
+      function renderExtractResults() {
+        els.extractStack.replaceChildren();
+        els.extractList.replaceChildren();
+        if (!extractState.bins || !extractState.totalPixels) {
+          const empty = document.createElement('div');
+          empty.className = 'extract-empty-result';
+          empty.textContent = '色彩生成区';
+          els.extractList.appendChild(empty);
+          syncExtractControls();
+          return;
+        }
+
+        extractState.currentColors.forEach(color => {
+          const percentage = (color.displayTenths / 10).toFixed(1);
+          const tooltipText = extractColorTooltip(color);
+          const segment = document.createElement('button');
+          segment.type = 'button';
+          segment.className = 'extract-stack-segment';
+          segment.dataset.colorId = color.id;
+          segment.style.flexGrow = String(color.displayTenths);
+          segment.style.background = color.hex;
+          segment.setAttribute('aria-label', `${color.hex}，图片占比 ${percentage}%`);
+          attachExtractHover(segment, color.id, tooltipText);
+          els.extractStack.appendChild(segment);
+
+          const exists = state.library.some(item => displayLchKey(item) === displayLchKey(color));
+          const row = document.createElement('article');
+          row.className = 'extract-color-row';
+          row.dataset.colorId = color.id;
+          row.tabIndex = 0;
+          row.innerHTML = `
+            <div class="extract-color-swatch" style="background:${color.hex}" aria-hidden="true"></div>
+            <div class="extract-color-meta">
+              <p class="extract-color-hex">${color.hex}</p>
+              <p class="extract-color-lch">${pointLabel(color)}</p>
+              <p class="extract-color-share">图片占比 ${percentage}%</p>
+            </div>
+            <div class="extract-color-actions">
+              <button class="extract-add" type="button" data-exists="${exists}">${exists ? '已在色库' : '添加到色库'}</button>
+              <button class="extract-delete" type="button">删除</button>
+            </div>`;
+          attachExtractHover(row, color.id, tooltipText);
+          row.querySelector('.extract-add').addEventListener('click', event => {
+            event.stopPropagation();
+            addExtractedColorToLibrary(color.id);
+          });
+          row.querySelector('.extract-delete').addEventListener('click', event => {
+            event.stopPropagation();
+            deleteExtractColor(color.id);
+          });
+          els.extractList.appendChild(row);
+        });
+
+        const otherPercentage = (extractState.otherTenths / 10).toFixed(1);
+        const otherSegment = document.createElement('button');
+        otherSegment.type = 'button';
+        otherSegment.className = 'extract-stack-segment is-other';
+        otherSegment.dataset.colorId = 'other';
+        otherSegment.style.flexGrow = String(extractState.otherTenths);
+        otherSegment.setAttribute('aria-label', `其他颜色，图片占比 ${otherPercentage}%`);
+        attachExtractHover(otherSegment, 'other', `其他颜色<br>图片占比 ${otherPercentage}%`);
+        els.extractStack.appendChild(otherSegment);
+
+        const otherRow = document.createElement('article');
+        otherRow.className = 'extract-color-row extract-other-row';
+        otherRow.dataset.colorId = 'other';
+        otherRow.tabIndex = 0;
+        otherRow.innerHTML = `
+          <div class="extract-other-swatch" aria-hidden="true">其他</div>
+          <div class="extract-color-meta">
+            <p class="extract-color-hex">其他颜色</p>
+            <p class="extract-color-share">图片占比 ${otherPercentage}%</p>
+          </div>`;
+        attachExtractHover(otherRow, 'other', `其他颜色<br>图片占比 ${otherPercentage}%`);
+        els.extractList.appendChild(otherRow);
+        syncExtractControls();
+      }
+
+      function deleteExtractColor(id) {
+        if (extractState.busy) return;
+        const index = extractState.currentColors.findIndex(color => color.id === id);
+        if (index < 0) return;
+        const [removed] = extractState.currentColors.splice(index, 1);
+        extractState.otherCount += removed.count;
+        extractState.otherTenths += removed.displayTenths;
+        hideTooltip();
+        renderExtractResults();
+      }
+
+      function restoreExtractResults() {
+        if (extractState.busy) return;
+        const original = extractState.originalsByMode.get(extractState.mode);
+        if (!original) return;
+        applyExtractAnalysis(original);
+        setExtractStatus('已恢复提取结果', 'success');
+      }
+
+      function addExtractedColorToLibrary(id) {
+        if (extractState.busy) return;
+        const color = extractState.currentColors.find(item => item.id === id);
+        if (!color) return;
+        if (state.library.some(item => displayLchKey(item) === displayLchKey(color))) {
+          setExtractStatus('颜色已存在于色库', 'success');
+          hideTooltip();
+          renderExtractResults();
+          return;
+        }
+        state.library.unshift({
+          id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          visible: true,
+          sourceType: 'hex',
+          sourceValue: color.hex,
+          key: `image:${displayLchKey(color)}`,
+          hex: color.hex,
+          rgb: [...color.rgb],
+          L: color.L,
+          C: color.C,
+          h: color.h,
+          outOfGamut: color.outOfGamut === true
+        });
+        saveLibrary();
+        renderLibrary();
+        renderCharts();
+        updateResult();
+        setExtractStatus('颜色已添加到色库', 'success');
+        hideTooltip();
+        renderExtractResults();
       }
 
       function parseColorInput(type, value) {
@@ -1153,6 +2585,61 @@
         state.previewVisible = false;
         saveLibrary(); renderLibrary(); renderCharts();
       });
+
+      const chooseExtractFile = () => {
+        if (extractState.busy) return;
+        els.extractFile.value = '';
+        els.extractFile.click();
+      };
+
+      els.openExtract.addEventListener('click', openImageExtractModal);
+      els.closeExtract.addEventListener('click', closeImageExtractModal);
+      els.extractModal.addEventListener('pointerdown', event => {
+        if (event.target === els.extractModal) closeImageExtractModal();
+      });
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && !els.extractModal.hidden) closeImageExtractModal();
+      });
+      els.extractDropzone.addEventListener('click', chooseExtractFile);
+      els.extractDropzone.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          chooseExtractFile();
+        }
+      });
+      els.extractFile.addEventListener('change', () => {
+        const [file] = els.extractFile.files || [];
+        if (file) handleExtractFile(file);
+      });
+      ['dragenter', 'dragover'].forEach(type => {
+        els.extractDropzone.addEventListener(type, event => {
+          event.preventDefault();
+          if (!extractState.busy) els.extractDropzone.classList.add('is-dragover');
+        });
+      });
+      els.extractDropzone.addEventListener('dragleave', event => {
+        if (!event.relatedTarget || !els.extractDropzone.contains(event.relatedTarget)) {
+          els.extractDropzone.classList.remove('is-dragover');
+        }
+      });
+      els.extractDropzone.addEventListener('drop', event => {
+        event.preventDefault();
+        els.extractDropzone.classList.remove('is-dragover');
+        if (extractState.busy) return;
+        const [file] = event.dataTransfer.files || [];
+        if (file) handleExtractFile(file);
+      });
+      els.extractModes.forEach(button => {
+        button.addEventListener('click', async () => {
+          const mode = button.dataset.mode;
+          if (extractState.busy || mode === extractState.mode) return;
+          extractState.mode = mode;
+          els.extractModes.forEach(item => item.classList.toggle('is-active', item === button));
+          if (extractState.bins) await runExtractAnalysis(false);
+        });
+      });
+      els.extractRestore.addEventListener('click', restoreExtractResults);
+      window.addEventListener('resize', resizeExtractPreviewFrame);
 
       convertCurrent(false, false);
       renderLibrary();
