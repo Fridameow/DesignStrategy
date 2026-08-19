@@ -613,6 +613,31 @@
       .tooltip { display: none; }
     }
 
+    html.touch-ui .tooltip { display: none !important; }
+
+    html.portrait-touch .extract-overlay { padding: 8px; }
+    html.portrait-touch .extract-dialog {
+      width: calc(100vw - 16px);
+      max-height: calc(100vh - 16px);
+      max-height: calc(100dvh - 16px);
+    }
+    html.portrait-touch .extract-content {
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+    html.portrait-touch .extract-image-pane {
+      flex: 0 0 auto;
+      min-height: 0;
+      border-right: 0;
+      border-bottom: 1px solid var(--line);
+    }
+    html.portrait-touch .extract-result-pane { flex: 0 0 auto; min-height: 0; overflow: visible; }
+    html.portrait-touch .extract-results-workspace { flex: none; }
+    html.portrait-touch .extract-list { overflow: visible; }
+
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
     }
@@ -812,6 +837,10 @@
 
       const STORAGE_KEY = 'cie-lch-color-atlas-v1';
       const state = { current: null, previewVisible: false, library: loadLibrary() };
+      const touchUi = 'ontouchstart' in window
+        || navigator.maxTouchPoints > 0
+        || window.matchMedia('(pointer: coarse)').matches;
+      document.documentElement.classList.toggle('touch-ui', touchUi);
       const extractState = {
         busy: false,
         objectUrl: null,
@@ -841,6 +870,7 @@
         openExtract: document.getElementById('openImageExtractBtn'), extractModal: document.getElementById('imageExtractModal'),
         closeExtract: document.getElementById('closeImageExtractBtn'), extractDropzone: document.getElementById('extractDropzone'),
         extractFile: document.getElementById('extractFileInput'), extractPreview: document.getElementById('extractPreview'),
+        extractUploadNote: document.querySelector('.extract-upload-note'),
         extractStatus: document.getElementById('extractStatus'),
         extractStatusText: document.getElementById('extractStatusText'), extractModes: [...document.querySelectorAll('.extract-mode')],
         extractStack: document.getElementById('extractStack'), extractList: document.getElementById('extractResultList'),
@@ -1811,7 +1841,23 @@
         syncExtractControls();
       }
 
+      function syncViewportMode() {
+        const viewport = window.visualViewport;
+        const width = viewport ? viewport.width : window.innerWidth;
+        const height = viewport ? viewport.height : window.innerHeight;
+        document.documentElement.classList.toggle('portrait-touch', touchUi && height > width);
+      }
+
+      function outerHeight(element) {
+        if (!element) return 0;
+        const style = getComputedStyle(element);
+        return element.offsetHeight
+          + (parseFloat(style.marginTop) || 0)
+          + (parseFloat(style.marginBottom) || 0);
+      }
+
       function resizeExtractPreviewFrame() {
+        syncViewportMode();
         if (!extractState.imageAspectRatio || !els.extractDropzone.classList.contains('has-image')) return;
         const pane = els.extractDropzone.parentElement;
         const paneStyle = getComputedStyle(pane);
@@ -1827,12 +1873,22 @@
         }
         els.extractDropzone.style.width = `${Math.round(width)}px`;
         els.extractDropzone.style.height = `${Math.round(height)}px`;
+        const stackedLayout = window.matchMedia('(max-width: 860px)').matches
+          || document.documentElement.classList.contains('portrait-touch');
+        if (stackedLayout) {
+          const verticalPadding = (parseFloat(paneStyle.paddingTop) || 0) + (parseFloat(paneStyle.paddingBottom) || 0);
+          const paneHeight = verticalPadding + height + outerHeight(els.extractUploadNote) + outerHeight(els.extractStatus);
+          pane.style.height = `${Math.ceil(paneHeight)}px`;
+        } else {
+          pane.style.removeProperty('height');
+        }
       }
 
       function clearExtractPreviewFrame() {
         extractState.imageAspectRatio = null;
         els.extractDropzone.style.removeProperty('width');
         els.extractDropzone.style.removeProperty('height');
+        els.extractDropzone.parentElement.style.removeProperty('height');
       }
 
       function clearExtractAnalysisState() {
@@ -2037,6 +2093,7 @@
       }
 
       function attachExtractHover(node, id, tooltipText) {
+        if (touchUi) return;
         node.addEventListener('pointerenter', event => {
           if (!shouldDisplayTooltip(event)) return;
           setExtractLinked(id, true);
@@ -2532,6 +2589,7 @@
       }
 
       function shouldDisplayTooltip(event) {
+        if (touchUi) return false;
         if (event.pointerType === 'touch') return false;
         if (event.type === 'focus' && event.currentTarget && typeof event.currentTarget.matches === 'function') {
           return event.currentTarget.matches(':focus-visible');
@@ -2554,7 +2612,12 @@
         els.tooltip.style.left = `${Math.max(10, x)}px`;
         els.tooltip.style.top = `${Math.max(10, y)}px`;
       }
-      function hideTooltip() { els.tooltip.classList.remove('show'); }
+      function hideTooltip() {
+        els.tooltip.classList.remove('show');
+        els.tooltip.replaceChildren();
+        els.tooltip.style.removeProperty('left');
+        els.tooltip.style.removeProperty('top');
+      }
 
       function inputValueForType(type, color) {
         if (!color) return type === 'hex' ? '#81D8D0' : type === 'lab' ? '(81, 28, -12)' : '(81, 28, 189)';
@@ -2601,6 +2664,7 @@
       document.addEventListener('pointerdown', event => {
         if (event.pointerType === 'touch') hideTooltip();
       }, true);
+      document.addEventListener('touchstart', hideTooltip, { capture: true, passive: true });
       document.addEventListener('scroll', hideTooltip, true);
       els.extractModal.addEventListener('pointerdown', event => {
         if (event.target === els.extractModal) closeImageExtractModal();
@@ -2651,8 +2715,14 @@
         hideTooltip();
         resizeExtractPreviewFrame();
       });
-      if (window.visualViewport) window.visualViewport.addEventListener('resize', resizeExtractPreviewFrame);
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', () => {
+          hideTooltip();
+          resizeExtractPreviewFrame();
+        });
+      }
 
+      syncViewportMode();
       convertCurrent(false, false);
       renderLibrary();
     })();
