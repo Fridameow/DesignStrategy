@@ -569,11 +569,13 @@
       .charts-grid, .stats-grid { grid-template-columns: 1fr; }
       .library-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .spec { display: none; }
-      .extract-dialog { max-height: calc(100vh - 24px); }
-      .extract-content { grid-template-columns: 1fr; overflow: auto; }
-      .extract-image-pane { min-height: 340px; border-right: 0; border-bottom: 1px solid var(--line); }
+      .extract-dialog { max-height: calc(100vh - 24px); max-height: calc(100dvh - 24px); }
+      .extract-content { display: flex; flex-direction: column; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
+      .extract-image-pane { flex: 0 0 auto; min-height: 0; border-right: 0; border-bottom: 1px solid var(--line); }
       .extract-upload { min-height: 300px; }
-      .extract-result-pane { min-height: 560px; }
+      .extract-result-pane { flex: 0 0 auto; min-height: 0; overflow: visible; }
+      .extract-results-workspace { flex: none; }
+      .extract-list { overflow: visible; }
     }
 
     @media (max-width: 560px) {
@@ -595,7 +597,7 @@
       .stats-row { grid-template-columns: 92px minmax(0, 1fr); gap: 9px; }
       .footnote { flex-direction: column; gap: 5px; }
       .extract-overlay { padding: 8px; }
-      .extract-dialog { width: calc(100vw - 16px); max-height: calc(100vh - 16px); border-radius: 20px; }
+      .extract-dialog { width: calc(100vw - 16px); max-height: calc(100vh - 16px); max-height: calc(100dvh - 16px); border-radius: 20px; }
       .extract-header { padding: 17px; }
       .extract-image-pane, .extract-result-pane { padding: 16px; }
       .extract-mode-row { align-items: stretch; flex-direction: column; }
@@ -605,6 +607,10 @@
       .extract-color-row { grid-template-columns: 42px minmax(0, 1fr); }
       .extract-color-swatch, .extract-other-swatch { width: 42px; height: 42px; }
       .extract-color-actions { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (hover: none) and (pointer: coarse) {
+      .tooltip { display: none; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -815,7 +821,6 @@
         totalPixels: 0,
         mode: 'standard',
         currentColors: [],
-        otherCount: 0,
         otherTenths: 1000,
         originalsByMode: new Map(),
         analysisToken: 0,
@@ -1481,6 +1486,71 @@
         return 'red';
       }
 
+      function forEachRasterComponent(raster, acceptsKey, visitComponent) {
+        const { width, height, pixelKeys } = raster;
+        const visited = new Uint8Array(pixelKeys.length);
+        const stack = [];
+        for (let start = 0; start < pixelKeys.length; start += 1) {
+          const startKey = pixelKeys[start];
+          if (visited[start] || startKey < 0 || !acceptsKey(startKey)) continue;
+          visited[start] = 1;
+          stack.push(start);
+          const component = [];
+          while (stack.length) {
+            const pixelIndex = stack.pop();
+            component.push(pixelIndex);
+            const x = pixelIndex % width;
+            const y = Math.floor(pixelIndex / width);
+            for (let dy = -1; dy <= 1; dy += 1) {
+              for (let dx = -1; dx <= 1; dx += 1) {
+                if (!dx && !dy) continue;
+                const nextX = x + dx;
+                const nextY = y + dy;
+                if (nextX < 0 || nextX >= width || nextY < 0 || nextY >= height) continue;
+                const next = nextY * width + nextX;
+                const nextKey = pixelKeys[next];
+                if (visited[next] || nextKey < 0 || !acceptsKey(nextKey)) continue;
+                visited[next] = 1;
+                stack.push(next);
+              }
+            }
+          }
+          visitComponent(component);
+        }
+      }
+
+      function mapEntryOwners(entries) {
+        const ownerByKey = new Map();
+        entries.forEach((entry, index) => {
+          (entry.cluster.members || []).forEach(member => ownerByKey.set(member.key, index));
+        });
+        return ownerByKey;
+      }
+
+      function mapRasterOwners(pixelKeys, ownerByKey) {
+        const ownerByPixel = new Int16Array(pixelKeys.length);
+        ownerByPixel.fill(-1);
+        for (let index = 0; index < pixelKeys.length; index += 1) {
+          if (pixelKeys[index] >= 0 && ownerByKey.has(pixelKeys[index])) ownerByPixel[index] = ownerByKey.get(pixelKeys[index]);
+        }
+        return ownerByPixel;
+      }
+
+      function createWeightedLabCluster(members, count) {
+        const cluster = members.reduce((accumulator, member) => {
+          accumulator.L += member.L * member.count;
+          accumulator.a += member.a * member.count;
+          accumulator.b += member.b * member.count;
+          return accumulator;
+        }, { L: 0, a: 0, b: 0 });
+        cluster.L /= count;
+        cluster.a /= count;
+        cluster.b /= count;
+        cluster.count = count;
+        cluster.members = members;
+        return cluster;
+      }
+
       function injectMutedHueDiversityEntries(entries, bins, raster, totalPixels, settings) {
         if (!settings.mutedDiversitySlots || !raster || !raster.pixelKeys || !entries.length) return entries;
         const hasDominantNeutral = entries.some(entry =>
@@ -1490,7 +1560,7 @@
         const vividPixelCount = bins.reduce((sum, bin) =>
           sum + (clusterColorMetrics(bin).C >= settings.mutedVividChroma ? bin.count : 0), 0);
         if (vividPixelCount / totalPixels > settings.mutedMaxVividShare && !hasDominantNeutral) return entries;
-        const { width, height, pixelKeys } = raster;
+        const { pixelKeys } = raster;
         const binByKey = new Map(bins.map(bin => [bin.key, bin]));
         const groupByKey = new Map();
         const groupIds = new Set();
@@ -1504,60 +1574,24 @@
           groupIds.add(groupId);
         });
 
-        const ownerByKey = new Map();
-        entries.forEach((entry, index) => {
-          (entry.cluster.members || []).forEach(member => ownerByKey.set(member.key, index));
-        });
+        const ownerByKey = mapEntryOwners(entries);
         const minimumComponentPixels = Math.max(5, Math.round(totalPixels * settings.mutedComponentShare));
         const candidates = [];
 
         groupIds.forEach(groupId => {
           const keptCounts = new Map();
-          const visited = new Uint8Array(pixelKeys.length);
-          const stack = [];
-          for (let start = 0; start < pixelKeys.length; start += 1) {
-            const startKey = pixelKeys[start];
-            if (visited[start] || startKey < 0 || groupByKey.get(startKey) !== groupId) continue;
-            visited[start] = 1;
-            stack.push(start);
-            const componentKeys = [];
-            while (stack.length) {
-              const pixelIndex = stack.pop();
-              componentKeys.push(pixelKeys[pixelIndex]);
-              const x = pixelIndex % width;
-              const y = Math.floor(pixelIndex / width);
-              for (let dy = -1; dy <= 1; dy += 1) {
-                for (let dx = -1; dx <= 1; dx += 1) {
-                  if (!dx && !dy) continue;
-                  const nextX = x + dx;
-                  const nextY = y + dy;
-                  if (nextX < 0 || nextX >= width || nextY < 0 || nextY >= height) continue;
-                  const next = nextY * width + nextX;
-                  const nextKey = pixelKeys[next];
-                  if (visited[next] || nextKey < 0 || groupByKey.get(nextKey) !== groupId) continue;
-                  visited[next] = 1;
-                  stack.push(next);
-                }
-              }
-            }
-            if (componentKeys.length < minimumComponentPixels) continue;
-            componentKeys.forEach(key => keptCounts.set(key, (keptCounts.get(key) || 0) + 1));
-          }
+          forEachRasterComponent(raster, key => groupByKey.get(key) === groupId, component => {
+            if (component.length < minimumComponentPixels) return;
+            component.forEach(pixelIndex => {
+              const key = pixelKeys[pixelIndex];
+              keptCounts.set(key, (keptCounts.get(key) || 0) + 1);
+            });
+          });
 
           const count = [...keptCounts.values()].reduce((sum, value) => sum + value, 0);
           if (!count || count / totalPixels < settings.mutedMinShare) return;
           const members = [...keptCounts].map(([key, memberCount]) => ({ ...binByKey.get(key), count: memberCount }));
-          const cluster = members.reduce((accumulator, member) => {
-            accumulator.L += member.L * member.count;
-            accumulator.a += member.a * member.count;
-            accumulator.b += member.b * member.count;
-            return accumulator;
-          }, { L: 0, a: 0, b: 0 });
-          cluster.L /= count;
-          cluster.a /= count;
-          cluster.b /= count;
-          cluster.count = count;
-          cluster.members = members;
+          const cluster = createWeightedLabCluster(members, count);
           cluster.preferredRepresentative = { L: cluster.L, a: cluster.a, b: cluster.b };
           const metrics = clusterColorMetrics(cluster);
           if (metrics.C < 3.2) return;
@@ -1640,16 +1674,8 @@
         const { width, height, pixelKeys } = raster;
         if (pixelKeys.length !== width * height) return entries;
 
-        const binByKey = new Map(bins.map(bin => [bin.key, bin]));
-        const ownerByKey = new Map();
-        entries.forEach((entry, index) => {
-          (entry.cluster.members || []).forEach(member => ownerByKey.set(member.key, index));
-        });
-        const ownerByPixel = new Int16Array(pixelKeys.length);
-        ownerByPixel.fill(-1);
-        for (let index = 0; index < pixelKeys.length; index += 1) {
-          if (pixelKeys[index] >= 0 && ownerByKey.has(pixelKeys[index])) ownerByPixel[index] = ownerByKey.get(pixelKeys[index]);
-        }
+        const ownerByKey = mapEntryOwners(entries);
+        const ownerByPixel = mapRasterOwners(pixelKeys, ownerByKey);
 
         const claimedByPixel = new Int16Array(pixelKeys.length);
         claimedByPixel.fill(-1);
@@ -1673,43 +1699,16 @@
               && hueAngleDistance(metrics.h, accentMetrics.h) <= settings.spatialHueRange);
           });
 
-          const visited = new Uint8Array(pixelKeys.length);
-          const stack = [];
-          for (let start = 0; start < pixelKeys.length; start += 1) {
-            const startKey = pixelKeys[start];
-            if (visited[start] || startKey < 0 || !candidateByKey.get(startKey)) continue;
-            visited[start] = 1;
-            stack.push(start);
-            const component = [];
-            let seedCount = 0;
-            while (stack.length) {
-              const pixelIndex = stack.pop();
-              component.push(pixelIndex);
-              if (ownerByPixel[pixelIndex] === accentIndex) seedCount += 1;
-              const x = pixelIndex % width;
-              const y = Math.floor(pixelIndex / width);
-              for (let dy = -1; dy <= 1; dy += 1) {
-                for (let dx = -1; dx <= 1; dx += 1) {
-                  if (!dx && !dy) continue;
-                  const nextX = x + dx;
-                  const nextY = y + dy;
-                  if (nextX < 0 || nextX >= width || nextY < 0 || nextY >= height) continue;
-                  const next = nextY * width + nextX;
-                  const nextKey = pixelKeys[next];
-                  if (visited[next] || nextKey < 0 || !candidateByKey.get(nextKey)) continue;
-                  visited[next] = 1;
-                  stack.push(next);
-                }
-              }
-            }
-
+          forEachRasterComponent(raster, key => candidateByKey.get(key), component => {
+            const seedCount = component.reduce((sum, pixelIndex) =>
+              sum + (ownerByPixel[pixelIndex] === accentIndex ? 1 : 0), 0);
             const componentShare = component.length / totalPixels;
             const seedRatio = component.length ? seedCount / component.length : 0;
-            if (seedCount < minimumSeedPixels || seedRatio < .055 || componentShare > settings.spatialMaxRegionShare) continue;
+            if (seedCount < minimumSeedPixels || seedRatio < .055 || componentShare > settings.spatialMaxRegionShare) return;
             component.forEach(pixelIndex => {
               if (claimedByPixel[pixelIndex] < 0 || ownerByPixel[pixelIndex] === accentIndex) claimedByPixel[pixelIndex] = accentIndex;
             });
-          }
+          });
         });
 
         if (!claimedByPixel.some(index => index >= 0)) return entries;
@@ -1773,13 +1772,12 @@
             outOfGamut: preview.outOfGamut
           };
         });
-        return { colors, otherCount, otherTenths: tenths[tenths.length - 1] };
+        return { colors, otherTenths: tenths[tenths.length - 1] };
       }
 
       function cloneExtractAnalysis(analysis) {
         return {
           colors: analysis.colors.map(color => ({ ...color })),
-          otherCount: analysis.otherCount,
           otherTenths: analysis.otherTenths
         };
       }
@@ -1819,7 +1817,8 @@
         const paneStyle = getComputedStyle(pane);
         const horizontalPadding = parseFloat(paneStyle.paddingLeft) + parseFloat(paneStyle.paddingRight);
         const maxWidth = Math.max(160, pane.clientWidth - horizontalPadding);
-        const maxHeight = Math.max(220, Math.min(720, window.innerHeight - 230));
+        const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        const maxHeight = Math.max(220, Math.min(720, viewportHeight - 230));
         let width = maxWidth;
         let height = width / extractState.imageAspectRatio;
         if (height > maxHeight) {
@@ -1836,19 +1835,22 @@
         els.extractDropzone.style.removeProperty('height');
       }
 
+      function clearExtractAnalysisState() {
+        extractState.bins = null;
+        extractState.raster = null;
+        extractState.totalPixels = 0;
+        extractState.currentColors = [];
+        extractState.otherTenths = 1000;
+        extractState.originalsByMode.clear();
+      }
+
       function resetImageExtractSession() {
         extractState.analysisToken += 1;
         if (extractState.objectUrl) URL.revokeObjectURL(extractState.objectUrl);
         extractState.objectUrl = null;
-        extractState.bins = null;
-        extractState.raster = null;
+        clearExtractAnalysisState();
         clearExtractPreviewFrame();
-        extractState.totalPixels = 0;
         extractState.mode = 'standard';
-        extractState.currentColors = [];
-        extractState.otherCount = 0;
-        extractState.otherTenths = 1000;
-        extractState.originalsByMode.clear();
         extractState.busy = false;
         els.extractFile.value = '';
         els.extractPreview.removeAttribute('src');
@@ -1949,12 +1951,11 @@
       function applyExtractAnalysis(analysis) {
         const copy = cloneExtractAnalysis(analysis);
         extractState.currentColors = copy.colors;
-        extractState.otherCount = copy.otherCount;
         extractState.otherTenths = copy.otherTenths;
         renderExtractResults();
       }
 
-      async function runExtractAnalysis(force = false) {
+      async function runExtractAnalysis() {
         if (extractState.busy || !extractState.bins || !extractState.totalPixels) return;
         const mode = extractState.mode;
         const token = ++extractState.analysisToken;
@@ -1964,7 +1965,7 @@
         if (token !== extractState.analysisToken || els.extractModal.hidden) return;
 
         try {
-          let analysis = !force ? extractState.originalsByMode.get(mode) : null;
+          let analysis = extractState.originalsByMode.get(mode);
           if (!analysis) {
             analysis = analyzeColorBins(extractState.bins, extractState.totalPixels, mode, extractState.raster);
             extractState.originalsByMode.set(mode, cloneExtractAnalysis(analysis));
@@ -1973,7 +1974,6 @@
           setExtractStatus('分析完成', 'success');
         } catch (_) {
           extractState.currentColors = [];
-          extractState.otherCount = extractState.totalPixels;
           extractState.otherTenths = 1000;
           renderExtractResults();
           setExtractStatus('图片读取失败', 'error');
@@ -1991,14 +1991,8 @@
 
         if (extractState.objectUrl) URL.revokeObjectURL(extractState.objectUrl);
         extractState.objectUrl = URL.createObjectURL(file);
-        extractState.bins = null;
-        extractState.raster = null;
+        clearExtractAnalysisState();
         clearExtractPreviewFrame();
-        extractState.totalPixels = 0;
-        extractState.currentColors = [];
-        extractState.otherCount = 0;
-        extractState.otherTenths = 1000;
-        extractState.originalsByMode.clear();
         els.extractPreview.src = extractState.objectUrl;
         els.extractDropzone.classList.remove('has-image');
         els.extractStack.replaceChildren();
@@ -2016,16 +2010,10 @@
           extractState.raster = sampled.raster;
           extractState.totalPixels = sampled.totalPixels;
           setExtractBusy(false);
-          await runExtractAnalysis(false);
+          await runExtractAnalysis();
         } catch (error) {
           if (token !== extractState.analysisToken || els.extractModal.hidden) return;
-          extractState.bins = null;
-          extractState.raster = null;
-          extractState.totalPixels = 0;
-          extractState.currentColors = [];
-          extractState.otherCount = 0;
-          extractState.otherTenths = 1000;
-          extractState.originalsByMode.clear();
+          clearExtractAnalysisState();
           els.extractStack.replaceChildren();
           els.extractList.innerHTML = '<div class="extract-empty-result">未能生成颜色结果</div>';
           const message = error && error.code === 'format'
@@ -2050,15 +2038,19 @@
 
       function attachExtractHover(node, id, tooltipText) {
         node.addEventListener('pointerenter', event => {
+          if (!shouldDisplayTooltip(event)) return;
           setExtractLinked(id, true);
           showTooltip(event, tooltipText);
         });
-        node.addEventListener('pointermove', moveTooltip);
+        node.addEventListener('pointermove', event => {
+          if (shouldDisplayTooltip(event)) moveTooltip(event);
+        });
         node.addEventListener('pointerleave', () => {
           setExtractLinked(id, false);
           hideTooltip();
         });
         node.addEventListener('focus', event => {
+          if (!shouldDisplayTooltip(event)) return;
           setExtractLinked(id, true);
           showTooltip(event, tooltipText);
         });
@@ -2155,7 +2147,6 @@
         const index = extractState.currentColors.findIndex(color => color.id === id);
         if (index < 0) return;
         const [removed] = extractState.currentColors.splice(index, 1);
-        extractState.otherCount += removed.count;
         extractState.otherTenths += removed.displayTenths;
         hideTooltip();
         renderExtractResults();
@@ -2540,7 +2531,20 @@
         });
       }
 
-      function showTooltip(event, html) { els.tooltip.innerHTML = html; els.tooltip.classList.add('show'); moveTooltip(event); }
+      function shouldDisplayTooltip(event) {
+        if (event.pointerType === 'touch') return false;
+        if (event.type === 'focus' && event.currentTarget && typeof event.currentTarget.matches === 'function') {
+          return event.currentTarget.matches(':focus-visible');
+        }
+        return true;
+      }
+
+      function showTooltip(event, html) {
+        if (!shouldDisplayTooltip(event)) return;
+        els.tooltip.innerHTML = html;
+        els.tooltip.classList.add('show');
+        moveTooltip(event);
+      }
       function moveTooltip(event) {
         const point = event.touches ? event.touches[0] : event;
         const clientX = Number.isFinite(point.clientX) ? point.clientX : window.innerWidth / 2;
@@ -2594,6 +2598,10 @@
 
       els.openExtract.addEventListener('click', openImageExtractModal);
       els.closeExtract.addEventListener('click', closeImageExtractModal);
+      document.addEventListener('pointerdown', event => {
+        if (event.pointerType === 'touch') hideTooltip();
+      }, true);
+      document.addEventListener('scroll', hideTooltip, true);
       els.extractModal.addEventListener('pointerdown', event => {
         if (event.target === els.extractModal) closeImageExtractModal();
       });
@@ -2635,11 +2643,15 @@
           if (extractState.busy || mode === extractState.mode) return;
           extractState.mode = mode;
           els.extractModes.forEach(item => item.classList.toggle('is-active', item === button));
-          if (extractState.bins) await runExtractAnalysis(false);
+          if (extractState.bins) await runExtractAnalysis();
         });
       });
       els.extractRestore.addEventListener('click', restoreExtractResults);
-      window.addEventListener('resize', resizeExtractPreviewFrame);
+      window.addEventListener('resize', () => {
+        hideTooltip();
+        resizeExtractPreviewFrame();
+      });
+      if (window.visualViewport) window.visualViewport.addEventListener('resize', resizeExtractPreviewFrame);
 
       convertCurrent(false, false);
       renderLibrary();
