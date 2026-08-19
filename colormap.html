@@ -292,15 +292,14 @@
 
     .extract-content { display: grid; grid-template-columns: minmax(0, .94fr) minmax(480px, 1.06fr); min-height: 0; overflow: hidden; }
     .extract-image-pane, .extract-result-pane { min-width: 0; min-height: 0; padding: 22px; }
-    .extract-image-pane { display: flex; flex-direction: column; border-right: 1px solid var(--line); }
-    .extract-result-pane { display: flex; flex-direction: column; overflow: hidden; }
+    .extract-image-pane { display: grid; grid-template-rows: minmax(0, 1fr) 31px; gap: 12px; border-right: 1px solid var(--line); }
+    .extract-result-pane { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 16px; overflow: hidden; }
 
     .extract-upload {
       position: relative;
       display: grid;
-      flex: 1;
       place-items: center;
-      min-height: 430px;
+      min-height: 460px;
       overflow: hidden;
       border: 1px dashed rgba(255,255,255,.2);
       border-radius: 19px;
@@ -310,41 +309,43 @@
 
     .extract-upload.is-dragover { border-color: var(--accent); background: rgba(129,216,208,.08); }
     .extract-upload.is-busy { pointer-events: none; }
-    .extract-upload.has-image { flex: 0 0 auto; align-self: center; min-width: 0; min-height: 0; background: transparent; }
+    .extract-upload.has-image { align-self: end; justify-self: center; min-width: 0; min-height: 0; background: transparent; }
+    .extract-upload.has-image.is-landscape { align-self: center; }
     .extract-upload-empty { padding: 30px; color: var(--muted); text-align: center; cursor: pointer; }
     .extract-upload-empty strong { display: block; margin-bottom: 9px; color: #e1e3e4; font-size: 16px; }
     .extract-upload-empty span { display: block; font-size: 11px; line-height: 1.7; }
-    .extract-upload-icon { display: grid; place-items: center; width: 52px; height: 52px; margin: 0 auto 16px; border: 1px solid rgba(255,255,255,.14); border-radius: 15px; background: rgba(255,255,255,.055); color: #cdd1d3; font-size: 24px; }
+    .extract-upload-icon { position: relative; display: block !important; width: 52px; height: 52px; margin: 0 auto 16px; border: 1px solid rgba(255,255,255,.14); border-radius: 15px; background: rgba(255,255,255,.055); color: #cdd1d3; font-size: 0 !important; }
+    .extract-upload-icon::before, .extract-upload-icon::after { content: ""; position: absolute; top: 50%; left: 50%; width: 14px; height: 2px; border-radius: 999px; background: currentColor; transform: translate(-50%, -50%); }
+    .extract-upload-icon::after { transform: translate(-50%, -50%) rotate(90deg); }
     .extract-preview { display: none; width: 100%; height: 100%; object-fit: contain; background: transparent; }
     .extract-upload.has-image .extract-upload-empty { display: none; }
     .extract-upload.has-image .extract-preview { display: block; }
-    .extract-upload-note { align-self: center; margin: 12px 0 0; color: var(--faint); font-size: 10px; line-height: 1.6; text-align: center; }
+    .extract-upload-note { display: grid; min-height: 31px; place-items: center; margin: 0; color: var(--faint); font-size: 10px; line-height: 1.6; text-align: center; }
 
-    .extract-status { display: flex; align-items: center; gap: 8px; min-height: 28px; margin-top: 10px; color: var(--muted); font-size: 11px; }
+    .extract-status { position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; border: 0; clip: rect(0 0 0 0); white-space: nowrap; }
     .extract-status.is-error { color: var(--danger); }
     .extract-status.is-success { color: #7fd7b0; }
     .extract-spinner { display: none; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.16); border-top-color: var(--accent); border-radius: 50%; animation: extract-spin .75s linear infinite; }
     .extract-status.is-loading .extract-spinner { display: inline-block; }
     @keyframes extract-spin { to { transform: rotate(360deg); } }
 
-    .extract-mode-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 16px; }
+    .extract-mode-row { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin: 0; }
     .extract-mode-label { color: #c8cbce; font-size: 12px; font-weight: 650; }
     .extract-segmented { display: grid; grid-template-columns: repeat(3, 1fr); width: min(330px, 100%); padding: 3px; border: 1px solid var(--line); border-radius: 12px; background: rgba(0,0,0,.26); }
     .extract-mode { height: 32px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font-size: 11px; font-weight: 650; cursor: pointer; }
     .extract-mode.is-active { background: rgba(255,255,255,.11); color: #f2f3f3; box-shadow: 0 3px 10px rgba(0,0,0,.22); }
 
-    .extract-results-workspace { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 16px; min-height: 0; flex: 1; }
-    .extract-stack-panel { display: flex; flex-direction: column; align-items: center; min-height: 0; }
-    .extract-stack-title { margin: 0 0 9px; color: var(--muted); font-size: 10px; }
-    .extract-stack { display: flex; flex: 1; flex-direction: column; width: 70px; min-height: 300px; max-height: 500px; overflow: hidden; border: 1px solid rgba(255,255,255,.14); border-radius: 14px; background: rgba(255,255,255,.045); box-shadow: inset 0 2px 8px rgba(0,0,0,.35); }
+    .extract-results-workspace { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 16px; min-height: 0; }
+    .extract-stack-panel, .extract-list-wrap { display: grid; grid-template-rows: minmax(0, 1fr) 31px; gap: 12px; min-width: 0; min-height: 0; }
+    .extract-stack-panel { align-items: stretch; }
+    .extract-stack { display: flex; align-self: stretch; justify-self: center; flex-direction: column; width: 70px; height: 100%; min-height: 300px; overflow: hidden; border: 1px solid rgba(255,255,255,.14); border-radius: 14px; background: rgba(255,255,255,.045); box-shadow: inset 0 2px 8px rgba(0,0,0,.35); }
     .extract-stack-segment { position: relative; flex-basis: 0; min-height: 0; border: 0; border-bottom: 1px solid rgba(0,0,0,.2); padding: 0; cursor: pointer; transition: filter .14s ease, box-shadow .14s ease; }
     .extract-stack-segment:hover, .extract-stack-segment.is-linked { z-index: 1; filter: brightness(1.14) saturate(1.08); box-shadow: inset 0 0 0 2px rgba(255,255,255,.82); }
     .extract-stack-segment.is-other { background: repeating-linear-gradient(135deg, rgba(151,157,163,.55) 0 6px, rgba(96,101,107,.52) 6px 12px); }
-    .extract-stack-total { margin-top: 8px; color: var(--faint); font-size: 9px; }
+    .extract-stack-total { display: grid; min-height: 31px; place-items: center; margin: 0; color: var(--faint); font-size: 9px; }
 
-    .extract-list-wrap { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
-    .extract-list { display: grid; gap: 8px; min-height: 0; overflow: auto; padding-right: 5px; scrollbar-color: rgba(255,255,255,.2) transparent; }
-    .extract-empty-result { display: grid; place-items: center; min-height: 260px; border: 1px dashed var(--line); border-radius: 16px; color: var(--faint); font-size: 12px; text-align: center; }
+    .extract-list { display: grid; gap: 8px; width: 100%; height: 100%; min-height: 0; overflow: auto; padding-right: 0; scrollbar-color: rgba(255,255,255,.2) transparent; }
+    .extract-empty-result { display: grid; width: 100%; height: 100%; min-height: 300px; place-items: center; border: 1px dashed var(--line); border-radius: 16px; color: var(--faint); font-size: 12px; text-align: center; }
     .extract-color-row { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: 12px; min-width: 0; padding: 9px; border: 1px solid rgba(255,255,255,.09); border-radius: 14px; background: rgba(5,6,7,.42); transition: border-color .14s ease, background .14s ease; }
     .extract-color-row.is-linked { border-color: rgba(255,255,255,.32); background: rgba(255,255,255,.075); }
     .extract-color-swatch { width: 52px; height: 52px; border-radius: 10px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.22); }
@@ -370,7 +371,7 @@
     .extract-other-row { grid-template-columns: 52px minmax(0, 1fr); }
     .extract-other-swatch { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 10px; background: repeating-linear-gradient(135deg, rgba(151,157,163,.42) 0 6px, rgba(72,77,82,.46) 6px 12px); color: #d6d8da; font-size: 9px; }
 
-    .extract-footer-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+    .extract-footer-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; min-height: 31px; margin: 0; }
     .extract-tool:disabled, .extract-mode:disabled { opacity: .42; cursor: not-allowed; }
 
     .charts-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 22px; margin-bottom: 22px; }
@@ -573,9 +574,9 @@
       .extract-content { display: flex; flex-direction: column; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
       .extract-image-pane { flex: 0 0 auto; min-height: 0; border-right: 0; border-bottom: 1px solid var(--line); }
       .extract-upload { min-height: 300px; }
-      .extract-result-pane { flex: 0 0 auto; min-height: 0; overflow: visible; }
+      .extract-result-pane { flex: 0 0 auto; grid-template-rows: auto auto; min-height: 0; overflow: visible; }
       .extract-results-workspace { flex: none; }
-      .extract-list { overflow: visible; }
+      .extract-list { height: auto; overflow: visible; }
     }
 
     @media (max-width: 560px) {
@@ -634,9 +635,9 @@
       border-right: 0;
       border-bottom: 1px solid var(--line);
     }
-    html.portrait-touch .extract-result-pane { flex: 0 0 auto; min-height: 0; overflow: visible; }
+    html.portrait-touch .extract-result-pane { flex: 0 0 auto; grid-template-rows: auto auto; min-height: 0; overflow: visible; }
     html.portrait-touch .extract-results-workspace { flex: none; }
-    html.portrait-touch .extract-list { overflow: visible; }
+    html.portrait-touch .extract-list { height: auto; overflow: visible; }
 
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
@@ -784,7 +785,7 @@
         <section class="extract-image-pane" aria-label="图片上传与预览">
           <div id="extractDropzone" class="extract-upload" tabindex="0" role="button" aria-label="点击或拖拽上传图片">
             <div class="extract-upload-empty">
-              <span class="extract-upload-icon" aria-hidden="true">＋</span>
+              <span class="extract-upload-icon" aria-hidden="true"></span>
               <strong>上传图片</strong>
               <span>点击选择或将图片拖到这里</span>
               <span>支持 PNG、JPEG、WebP、GIF、BMP、AVIF</span>
@@ -811,7 +812,6 @@
 
           <div class="extract-results-workspace">
             <div class="extract-stack-panel">
-              <p class="extract-stack-title">图片占比</p>
               <div id="extractStack" class="extract-stack" aria-label="颜色比例纵向堆叠图"></div>
               <span class="extract-stack-total">100.0%</span>
             </div>
@@ -1859,6 +1859,7 @@
       function resizeExtractPreviewFrame() {
         syncViewportMode();
         if (!extractState.imageAspectRatio || !els.extractDropzone.classList.contains('has-image')) return;
+        els.extractDropzone.classList.toggle('is-landscape', extractState.imageAspectRatio >= 1);
         const pane = els.extractDropzone.parentElement;
         const paneStyle = getComputedStyle(pane);
         const horizontalPadding = parseFloat(paneStyle.paddingLeft) + parseFloat(paneStyle.paddingRight);
@@ -1877,7 +1878,8 @@
           || document.documentElement.classList.contains('portrait-touch');
         if (stackedLayout) {
           const verticalPadding = (parseFloat(paneStyle.paddingTop) || 0) + (parseFloat(paneStyle.paddingBottom) || 0);
-          const paneHeight = verticalPadding + height + outerHeight(els.extractUploadNote) + outerHeight(els.extractStatus);
+          const rowGap = parseFloat(paneStyle.rowGap) || 0;
+          const paneHeight = verticalPadding + height + outerHeight(els.extractUploadNote) + rowGap;
           pane.style.height = `${Math.ceil(paneHeight)}px`;
         } else {
           pane.style.removeProperty('height');
@@ -1886,6 +1888,7 @@
 
       function clearExtractPreviewFrame() {
         extractState.imageAspectRatio = null;
+        els.extractDropzone.classList.remove('is-landscape');
         els.extractDropzone.style.removeProperty('width');
         els.extractDropzone.style.removeProperty('height');
         els.extractDropzone.parentElement.style.removeProperty('height');
