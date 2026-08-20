@@ -392,6 +392,7 @@
       inset: 7.55%;
       border-radius: 50%;
       background: conic-gradient(from 0deg, #ff304f 0deg, #e30091 38deg, #7128f0 78deg, #2851ff 125deg, #00c7ef 170deg, #00e6ad 205deg, #8ef000 252deg, #ffbe0b 296deg, #ff304f 360deg);
+      transform: scaleX(-1);
       -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 10px), #000 calc(100% - 9px));
       mask: radial-gradient(farthest-side, transparent calc(100% - 10px), #000 calc(100% - 9px));
       filter: saturate(115%);
@@ -468,6 +469,62 @@
     }
 
     .ghost:hover { background: rgba(255,255,255,.075); }
+    .tag-filter {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      margin: -4px 0 18px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255,255,255,.025);
+    }
+    .tag-filter-main { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .tag-filter-label { flex: 0 0 auto; color: #aeb3b7; font-size: 11px; font-weight: 650; }
+    .tag-filter-chips { display: flex; flex-wrap: wrap; gap: 7px; min-width: 0; }
+    .tag-filter-chip, .tag-choice, .library-tag {
+      border: 1px solid rgba(255,255,255,.11);
+      border-radius: 999px;
+      background: rgba(255,255,255,.045);
+      color: #aeb3b7;
+      font-size: 10px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .tag-filter-chip, .tag-choice { min-height: 27px; padding: 0 10px; }
+    .tag-filter-chip:hover, .tag-choice:hover { border-color: rgba(255,255,255,.2); color: #e3e5e6; }
+    .tag-filter-chip.is-active, .tag-choice.is-selected {
+      border-color: rgba(129,216,208,.5);
+      background: rgba(129,216,208,.13);
+      color: #d9fffb;
+    }
+    .tag-filter-chip-count { margin-left: 5px; color: #777e84; font-variant-numeric: tabular-nums; }
+    .tag-filter-chip.is-active .tag-filter-chip-count { color: #91cfc9; }
+    .tag-filter-clear {
+      flex: 0 0 auto;
+      min-height: 28px;
+      border: 0;
+      padding: 0 2px;
+      background: transparent;
+      color: #8f959a;
+      font-size: 10px;
+      font-weight: 620;
+    }
+    .tag-filter-clear:hover:not(:disabled) { color: #dce0e2; }
+    .tag-filter-clear:disabled { cursor: default; opacity: .36; }
+    .tag-filter-actions { display: flex; align-items: center; gap: 11px; flex: 0 0 auto; }
+    .tag-filter-manage {
+      min-height: 28px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 9px;
+      padding: 0 10px;
+      background: rgba(255,255,255,.045);
+      color: #b9bec2;
+      font-size: 10px;
+      font-weight: 650;
+    }
+    .tag-filter-manage:hover { border-color: rgba(129,216,208,.34); background: rgba(129,216,208,.08); color: #d9fffb; }
     .library-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 
     .color-card {
@@ -518,9 +575,96 @@
     .card-rgb { color: #b8bdc2; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
     .card-info { color: #d2d5d7; }
 
+    .card-tags { display: flex; align-items: center; gap: 5px; min-width: 0; margin-top: 5px; }
+    .library-tag { max-width: 92px; overflow: hidden; padding: 4px 7px; color: #a8d5d1; text-overflow: ellipsis; }
+    .library-tag-more { color: #92989d; }
+    .card-tools { display: grid; gap: 4px; }
+
     .icon-button { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; padding: 0; background: transparent; color: var(--faint); }
     .icon-button:hover { background: rgba(255,107,114,.1); color: var(--danger); }
     .icon-button svg { width: 15px; height: 15px; }
+    .tag-edit-button:hover { background: rgba(129,216,208,.1); color: #9de4de; }
+
+    .tag-modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 220;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(0,0,0,.68);
+      backdrop-filter: blur(10px);
+    }
+    .tag-modal-overlay[hidden] { display: none; }
+    .tag-dialog {
+      width: min(520px, 100%);
+      max-height: min(680px, calc(100dvh - 40px));
+      overflow: auto;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 22px;
+      padding: 22px;
+      background: rgba(14,16,17,.98);
+      box-shadow: 0 30px 90px rgba(0,0,0,.55);
+    }
+    .tag-dialog-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+    .tag-dialog-title { margin: 0; color: #f2f3f3; font-size: 19px; }
+    .tag-dialog-subtitle { margin: 7px 0 18px; color: var(--muted); font-size: 11px; line-height: 1.55; }
+    .tag-dialog-close { flex: 0 0 auto; width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255,255,255,.04); color: #bfc4c7; font-size: 22px; line-height: 1; }
+    .tag-dialog-choices { display: flex; flex-wrap: wrap; gap: 8px; min-height: 35px; margin-bottom: 14px; }
+    .tag-dialog-empty { color: #747b81; font-size: 11px; line-height: 30px; }
+    .tag-create-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+    .tag-name-input {
+      min-width: 0;
+      height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      padding: 0 12px;
+      outline: none;
+      background: #090b0c;
+      color: #eef0f0;
+      font: inherit;
+      font-size: 12px;
+    }
+    .tag-name-input:focus { border-color: rgba(129,216,208,.58); box-shadow: 0 0 0 3px rgba(129,216,208,.08); }
+    .tag-create-button { height: 40px; border: 1px solid var(--line); border-radius: 11px; padding: 0 14px; background: rgba(255,255,255,.055); color: #d1d4d6; font-size: 11px; font-weight: 650; }
+    .tag-dialog-error { min-height: 18px; margin: 7px 0 5px; color: #ef9da2; font-size: 10px; line-height: 1.5; }
+    .tag-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 13px; }
+    .tag-dialog-actions .ghost { min-width: 78px; }
+    .tag-confirm { border-color: rgba(129,216,208,.38); background: rgba(129,216,208,.13); color: #d9fffb; }
+    .tag-manager-dialog { width: min(620px, 100%); }
+    .tag-manager-create { margin-bottom: 2px; }
+    .tag-manager-list { display: grid; gap: 8px; margin-top: 15px; }
+    .tag-manager-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 13px;
+      padding: 10px 11px;
+      background: rgba(255,255,255,.025);
+    }
+    .tag-manager-meta { display: flex; align-items: center; gap: 9px; min-width: 0; }
+    .tag-manager-name { overflow: hidden; color: #d9dddf; font-size: 12px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+    .tag-manager-count { flex: 0 0 auto; color: #747b80; font-size: 10px; }
+    .tag-manager-row-actions { display: flex; align-items: center; gap: 6px; }
+    .tag-manager-tool {
+      min-height: 30px;
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 9px;
+      padding: 0 10px;
+      background: rgba(255,255,255,.035);
+      color: #aeb4b8;
+      font-size: 10px;
+      font-weight: 620;
+    }
+    .tag-manager-tool:hover { background: rgba(255,255,255,.075); color: #e3e6e7; }
+    .tag-manager-delete { color: #c8868a; }
+    .tag-manager-delete:hover { border-color: rgba(255,107,114,.28); background: rgba(255,107,114,.09); color: #f0a1a6; }
+    .tag-manager-edit-row { grid-template-columns: minmax(0, 1fr) auto; }
+    .tag-manager-rename-input { height: 34px; }
+    .tag-manager-empty { padding: 28px 12px; border: 1px dashed rgba(255,255,255,.1); border-radius: 13px; color: #747b80; font-size: 11px; text-align: center; }
 
     .empty {
       grid-column: 1 / -1;
@@ -594,6 +738,11 @@
       .card-head, .library-head { align-items: flex-start; flex-direction: column; }
       .library-actions { width: 100%; }
       .library-actions .ghost { flex: 1; }
+      .tag-filter { align-items: stretch; flex-direction: column; }
+      .tag-filter-main { align-items: flex-start; flex-direction: column; }
+      .tag-filter-actions { width: 100%; }
+      .tag-filter-manage { flex: 1; }
+      .tag-filter-clear { flex: 1; }
       .library-grid { grid-template-columns: 1fr; }
       .stats-row { grid-template-columns: 92px minmax(0, 1fr); gap: 9px; }
       .footnote { flex-direction: column; gap: 5px; }
@@ -608,6 +757,12 @@
       .extract-color-row { grid-template-columns: 42px minmax(0, 1fr); }
       .extract-color-swatch, .extract-other-swatch { width: 42px; height: 42px; }
       .extract-color-actions { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; }
+      .tag-modal-overlay { padding: 10px; }
+      .tag-dialog { max-height: calc(100dvh - 20px); padding: 18px; border-radius: 18px; }
+      .tag-create-row { grid-template-columns: 1fr; }
+      .tag-create-button { width: 100%; }
+      .tag-manager-row, .tag-manager-edit-row { align-items: stretch; grid-template-columns: 1fr; }
+      .tag-manager-row-actions { display: grid; grid-template-columns: 1fr 1fr; }
     }
 
     @media (hover: none) and (pointer: coarse) {
@@ -739,9 +894,19 @@
           <button id="clearVisibleBtn" class="ghost" type="button">清除显示</button>
         </div>
       </div>
+      <div class="tag-filter" aria-label="色库标签筛选">
+        <div class="tag-filter-main">
+          <span class="tag-filter-label">标签筛选</span>
+          <div id="tagFilterChips" class="tag-filter-chips"></div>
+        </div>
+        <div class="tag-filter-actions">
+          <button id="manageTagsBtn" class="tag-filter-manage" type="button">管理标签</button>
+          <button id="clearTagFilterBtn" class="tag-filter-clear" type="button" disabled>清除筛选</button>
+        </div>
+      </div>
       <div id="libraryGrid" class="library-grid"></div>
       <div class="footnote">
-        <span>颜色与显示选择自动保存在当前浏览器。</span>
+        <span>颜色、标签与显示选择自动保存在当前浏览器。</span>
         <span>当 C &gt; 100 时，图中点位会压在边界，数值仍保留真实计算结果。</span>
       </div>
     </section>
@@ -829,6 +994,46 @@
     </section>
   </div>
 
+  <div id="tagModal" class="tag-modal-overlay" hidden>
+    <section class="tag-dialog" role="dialog" aria-modal="true" aria-labelledby="tagDialogTitle">
+      <div class="tag-dialog-head">
+        <div>
+          <h2 id="tagDialogTitle" class="tag-dialog-title">设置颜色标签</h2>
+          <p id="tagDialogSubtitle" class="tag-dialog-subtitle">可选择多个已有标签，也可以不选择标签直接确认。</p>
+        </div>
+        <button id="closeTagDialogBtn" class="tag-dialog-close" type="button" aria-label="关闭标签设置">×</button>
+      </div>
+      <div id="tagDialogChoices" class="tag-dialog-choices"></div>
+      <div class="tag-create-row">
+        <input id="tagNameInput" class="tag-name-input" type="text" maxlength="24" autocomplete="off" placeholder="输入新标签名称" aria-label="新标签名称" />
+        <button id="createTagBtn" class="tag-create-button" type="button">新建标签</button>
+      </div>
+      <p id="tagDialogError" class="tag-dialog-error" role="status" aria-live="polite"></p>
+      <div class="tag-dialog-actions">
+        <button id="cancelTagDialogBtn" class="ghost" type="button">取消</button>
+        <button id="confirmTagDialogBtn" class="ghost tag-confirm" type="button">确认</button>
+      </div>
+    </section>
+  </div>
+
+  <div id="tagManagerModal" class="tag-modal-overlay" hidden>
+    <section class="tag-dialog tag-manager-dialog" role="dialog" aria-modal="true" aria-labelledby="tagManagerTitle">
+      <div class="tag-dialog-head">
+        <div>
+          <h2 id="tagManagerTitle" class="tag-dialog-title">标签管理</h2>
+          <p class="tag-dialog-subtitle">新增或重命名标签；删除标签后，会自动从所有关联颜色中解绑。</p>
+        </div>
+        <button id="closeTagManagerBtn" class="tag-dialog-close" type="button" aria-label="关闭标签管理">×</button>
+      </div>
+      <div class="tag-create-row tag-manager-create">
+        <input id="tagManagerNameInput" class="tag-name-input" type="text" maxlength="24" autocomplete="off" placeholder="输入新标签名称" aria-label="新增标签名称" />
+        <button id="addManagedTagBtn" class="tag-create-button" type="button">新增标签</button>
+      </div>
+      <p id="tagManagerError" class="tag-dialog-error" role="status" aria-live="polite"></p>
+      <div id="tagManagerList" class="tag-manager-list"></div>
+    </section>
+  </div>
+
   <div id="tooltip" class="tooltip" role="tooltip"></div>
 
   <script>
@@ -836,7 +1041,16 @@
       'use strict';
 
       const STORAGE_KEY = 'cie-lch-color-atlas-v1';
-      const state = { current: null, previewVisible: false, library: loadLibrary() };
+      const TAG_STORAGE_KEY = 'cie-lch-color-atlas-tags-v1';
+      const state = {
+        current: null,
+        previewVisible: false,
+        library: loadLibrary(),
+        tags: loadTagRegistry(),
+        activeTagIds: new Set(),
+        activeTagLabels: new Map()
+      };
+      state.tags = mergeTagLabels(state.tags, state.library.flatMap(color => normalizeTags(color.tags)));
       const touchUi = 'ontouchstart' in window
         || navigator.maxTouchPoints > 0
         || window.matchMedia('(pointer: coarse)').matches;
@@ -855,6 +1069,13 @@
         analysisToken: 0,
         returnFocus: null
       };
+      const tagDialogState = {
+        available: new Map(),
+        selected: new Set(),
+        onConfirm: null,
+        returnFocus: null
+      };
+      const tagManagerState = { editingKey: null, returnFocus: null };
       const els = {
         input: document.getElementById('hexInput'), inputType: document.getElementById('inputType'),
         convert: document.getElementById('convertBtn'),
@@ -865,6 +1086,16 @@
         gamutChart: document.getElementById('gamutChart'), grid: document.getElementById('libraryGrid'),
         count: document.getElementById('libraryCount'), selectAll: document.getElementById('selectAllBtn'),
         clearVisible: document.getElementById('clearVisibleBtn'), tooltip: document.getElementById('tooltip'),
+        tagFilterChips: document.getElementById('tagFilterChips'), clearTagFilter: document.getElementById('clearTagFilterBtn'),
+        manageTags: document.getElementById('manageTagsBtn'), tagManagerModal: document.getElementById('tagManagerModal'),
+        closeTagManager: document.getElementById('closeTagManagerBtn'), tagManagerNameInput: document.getElementById('tagManagerNameInput'),
+        addManagedTag: document.getElementById('addManagedTagBtn'), tagManagerError: document.getElementById('tagManagerError'),
+        tagManagerList: document.getElementById('tagManagerList'),
+        tagModal: document.getElementById('tagModal'), tagDialogTitle: document.getElementById('tagDialogTitle'),
+        tagDialogSubtitle: document.getElementById('tagDialogSubtitle'), tagDialogChoices: document.getElementById('tagDialogChoices'),
+        tagNameInput: document.getElementById('tagNameInput'), createTag: document.getElementById('createTagBtn'),
+        tagDialogError: document.getElementById('tagDialogError'), cancelTag: document.getElementById('cancelTagDialogBtn'),
+        confirmTag: document.getElementById('confirmTagDialogBtn'), closeTag: document.getElementById('closeTagDialogBtn'),
         hueStatsRows: document.getElementById('hueStatsRows'), hueStatsTotal: document.getElementById('hueStatsTotal'),
         gamutStatsRows: document.getElementById('gamutStatsRows'), gamutStatsTotal: document.getElementById('gamutStatsTotal'),
         openExtract: document.getElementById('openImageExtractBtn'), extractModal: document.getElementById('imageExtractModal'),
@@ -942,6 +1173,74 @@
         { label: '低明无彩', color: '#50565C' }
       ];
 
+      function tagKey(value) {
+        return String(value || '').trim().normalize('NFKC').toLocaleLowerCase();
+      }
+
+      function normalizeTags(tags) {
+        const seen = new Set();
+        const normalized = [];
+        (Array.isArray(tags) ? tags : []).forEach(value => {
+          const label = String(value || '').trim();
+          const key = tagKey(label);
+          if (!label || !key || seen.has(key)) return;
+          seen.add(key);
+          normalized.push(label);
+        });
+        return normalized;
+      }
+
+      function mergeTagLabels(...groups) {
+        return normalizeTags(groups.flatMap(group => Array.isArray(group) ? group : []));
+      }
+
+      function loadTagRegistry() {
+        try {
+          const raw = localStorage.getItem(TAG_STORAGE_KEY);
+          const parsed = raw ? JSON.parse(raw) : [];
+          return normalizeTags(parsed);
+        } catch (_) { return []; }
+      }
+
+      function saveTagRegistry() {
+        try { localStorage.setItem(TAG_STORAGE_KEY, JSON.stringify(normalizeTags(state.tags))); }
+        catch (_) {}
+      }
+
+      function registerTags(tags) {
+        state.tags = mergeTagLabels(state.tags, tags);
+        saveTagRegistry();
+      }
+
+      function tagFilterId(label) {
+        return `tag:${tagKey(label)}`;
+      }
+
+      function colorTagIds(color) {
+        const tags = normalizeTags(color && color.tags);
+        return tags.map(tagFilterId);
+      }
+
+      function colorMatchesActiveTags(color) {
+        if (!state.activeTagIds.size) return true;
+        const colorIds = new Set(colorTagIds(color));
+        return [...state.activeTagIds].every(id => colorIds.has(id));
+      }
+
+      function getFilteredLibrary() {
+        return state.library.filter(colorMatchesActiveTags);
+      }
+
+      function collectTagDefinitions() {
+        const definitions = new Map();
+        normalizeTags(state.tags).forEach(label => definitions.set(tagKey(label), label));
+        state.library.forEach(color => normalizeTags(color.tags).forEach(label => {
+          const key = tagKey(label);
+          if (!definitions.has(key)) definitions.set(key, label);
+        }));
+        return definitions;
+      }
+
       function loadLibrary() {
         try {
           const raw = localStorage.getItem(STORAGE_KEY);
@@ -962,7 +1261,8 @@
                 hex: normalizeHex(item.hex),
                 rgb: Array.isArray(item.rgb) ? item.rgb : hexToRgb(item.hex),
                 L: Number(item.L), C: Number(item.C), h: normalizeHue(Number(item.h)),
-                outOfGamut: item.outOfGamut === true
+                outOfGamut: item.outOfGamut === true,
+                tags: normalizeTags(item.tags)
               };
             }
             const migrated = hexToLch(item.hex);
@@ -971,7 +1271,8 @@
               ...migrated,
               id: String(item.id || `${Date.now()}-${Math.random()}`),
               visible: item.visible !== false,
-              sourceType: 'hex', sourceValue: migrated.hex, key: `hex:${migrated.hex}`
+              sourceType: 'hex', sourceValue: migrated.hex, key: `hex:${migrated.hex}`,
+              tags: normalizeTags(item.tags)
             };
           }).filter(Boolean);
         } catch (_) { return []; }
@@ -982,9 +1283,366 @@
           localStorage.setItem(STORAGE_KEY, JSON.stringify(state.library.map(color => ({
             id: color.id, visible: color.visible, sourceType: color.sourceType,
             sourceValue: color.sourceValue, key: color.key, hex: color.hex, rgb: color.rgb,
-            L: color.L, C: color.C, h: color.h, outOfGamut: color.outOfGamut === true
+            L: color.L, C: color.C, h: color.h, outOfGamut: color.outOfGamut === true,
+            tags: normalizeTags(color.tags)
           }))));
         } catch (_) {}
+      }
+
+      function syncBodyModalState() {
+        const modalOpen = !els.extractModal.hidden || !els.tagModal.hidden || !els.tagManagerModal.hidden;
+        document.body.classList.toggle('modal-open', modalOpen);
+      }
+
+      function filterChip(label, count, id, active) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `tag-filter-chip${active ? ' is-active' : ''}`;
+        button.setAttribute('aria-pressed', String(active));
+        const name = document.createElement('span');
+        name.textContent = label;
+        button.appendChild(name);
+        if (Number.isFinite(count)) {
+          const amount = document.createElement('span');
+          amount.className = 'tag-filter-chip-count';
+          amount.textContent = String(count);
+          button.appendChild(amount);
+        }
+        button.addEventListener('click', () => {
+          if (id === 'all') {
+            state.activeTagIds.clear();
+            state.activeTagLabels.clear();
+          } else if (state.activeTagIds.has(id)) {
+            state.activeTagIds.delete(id);
+            state.activeTagLabels.delete(id);
+          } else {
+            state.activeTagIds.add(id);
+            state.activeTagLabels.set(id, label);
+          }
+          renderLibrary();
+          renderCharts();
+        });
+        return button;
+      }
+
+      function renderTagFilter() {
+        const counts = new Map();
+        const labels = collectTagDefinitions();
+        state.library.forEach(color => {
+          const tags = normalizeTags(color.tags);
+          tags.forEach(label => {
+            const key = tagKey(label);
+            counts.set(key, (counts.get(key) || 0) + 1);
+          });
+        });
+
+        els.tagFilterChips.replaceChildren();
+        els.tagFilterChips.appendChild(filterChip('全部', state.library.length, 'all', !state.activeTagIds.size));
+        const entries = [...labels.entries()].sort((a, b) => a[1].localeCompare(b[1], 'zh-Hans-CN'));
+        entries.forEach(([key, label]) => {
+          const id = tagFilterId(label);
+          state.activeTagLabels.set(id, state.activeTagLabels.get(id) || label);
+          els.tagFilterChips.appendChild(filterChip(label, counts.get(key) || 0, id, state.activeTagIds.has(id)));
+        });
+        state.activeTagIds.forEach(id => {
+          const alreadyRendered = [...labels.values()].some(label => tagFilterId(label) === id);
+          if (alreadyRendered) return;
+          const label = state.activeTagLabels.get(id) || '已删除标签';
+          els.tagFilterChips.appendChild(filterChip(label, 0, id, true));
+        });
+        els.clearTagFilter.disabled = !state.activeTagIds.size;
+      }
+
+      function renderTagDialogChoices() {
+        els.tagDialogChoices.replaceChildren();
+        if (!tagDialogState.available.size) {
+          const empty = document.createElement('span');
+          empty.className = 'tag-dialog-empty';
+          empty.textContent = '还没有标签，可在下方新建。';
+          els.tagDialogChoices.appendChild(empty);
+          return;
+        }
+        [...tagDialogState.available.entries()]
+          .sort((a, b) => a[1].localeCompare(b[1], 'zh-Hans-CN'))
+          .forEach(([key, label]) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = `tag-choice${tagDialogState.selected.has(key) ? ' is-selected' : ''}`;
+            button.setAttribute('aria-pressed', String(tagDialogState.selected.has(key)));
+            button.textContent = label;
+            button.addEventListener('click', () => {
+              if (tagDialogState.selected.has(key)) tagDialogState.selected.delete(key);
+              else tagDialogState.selected.add(key);
+              renderTagDialogChoices();
+            });
+            els.tagDialogChoices.appendChild(button);
+          });
+      }
+
+      function openTagDialog({ title = '设置颜色标签', subtitle, initialTags = [], onConfirm, returnFocus } = {}) {
+        tagDialogState.available = collectTagDefinitions();
+        tagDialogState.selected = new Set();
+        normalizeTags(initialTags).forEach(label => {
+          const key = tagKey(label);
+          if (!tagDialogState.available.has(key)) tagDialogState.available.set(key, label);
+          tagDialogState.selected.add(key);
+        });
+        tagDialogState.onConfirm = typeof onConfirm === 'function' ? onConfirm : null;
+        tagDialogState.returnFocus = returnFocus || document.activeElement;
+        els.tagDialogTitle.textContent = title;
+        els.tagDialogSubtitle.textContent = subtitle || '可选择多个已有标签，也可以不选择标签直接确认。';
+        els.tagNameInput.value = '';
+        els.tagDialogError.textContent = '';
+        renderTagDialogChoices();
+        els.tagModal.hidden = false;
+        syncBodyModalState();
+        requestAnimationFrame(() => els.tagNameInput.focus());
+      }
+
+      function closeTagDialog({ restoreFocus = true } = {}) {
+        if (els.tagModal.hidden) return;
+        const returnFocus = tagDialogState.returnFocus;
+        els.tagModal.hidden = true;
+        tagDialogState.onConfirm = null;
+        tagDialogState.returnFocus = null;
+        els.tagDialogError.textContent = '';
+        syncBodyModalState();
+        if (restoreFocus && returnFocus && typeof returnFocus.focus === 'function' && returnFocus.isConnected) returnFocus.focus();
+      }
+
+      function createTagFromInput({ focusInput = true } = {}) {
+        const label = els.tagNameInput.value.trim();
+        const key = tagKey(label);
+        if (!label) {
+          els.tagDialogError.textContent = '请输入标签名称。';
+          return false;
+        }
+        if (tagDialogState.available.has(key)) {
+          const existing = tagDialogState.available.get(key);
+          els.tagDialogError.textContent = `标签“${existing}”已存在，请直接勾选已有标签，或修改名称。`;
+          return false;
+        }
+        tagDialogState.available.set(key, label);
+        tagDialogState.selected.add(key);
+        els.tagNameInput.value = '';
+        els.tagDialogError.textContent = '';
+        renderTagDialogChoices();
+        if (focusInput) els.tagNameInput.focus();
+        return true;
+      }
+
+      function confirmTagDialog() {
+        if (els.tagNameInput.value.trim() && !createTagFromInput({ focusInput: false })) return;
+        const callback = tagDialogState.onConfirm;
+        const tags = normalizeTags([...tagDialogState.selected]
+          .map(key => tagDialogState.available.get(key))
+          .filter(Boolean));
+        registerTags(tags);
+        closeTagDialog({ restoreFocus: false });
+        if (callback) callback(tags);
+      }
+
+      function tagUsageCounts() {
+        const counts = new Map();
+        state.library.forEach(color => normalizeTags(color.tags).forEach(label => {
+          const key = tagKey(label);
+          counts.set(key, (counts.get(key) || 0) + 1);
+        }));
+        return counts;
+      }
+
+      function openTagManager() {
+        tagManagerState.returnFocus = document.activeElement;
+        tagManagerState.editingKey = null;
+        els.tagManagerNameInput.value = '';
+        els.tagManagerError.textContent = '';
+        renderTagManager();
+        els.tagManagerModal.hidden = false;
+        syncBodyModalState();
+        requestAnimationFrame(() => els.tagManagerNameInput.focus());
+      }
+
+      function closeTagManager() {
+        if (els.tagManagerModal.hidden) return;
+        const returnFocus = tagManagerState.returnFocus;
+        els.tagManagerModal.hidden = true;
+        tagManagerState.editingKey = null;
+        tagManagerState.returnFocus = null;
+        els.tagManagerError.textContent = '';
+        syncBodyModalState();
+        if (returnFocus && typeof returnFocus.focus === 'function' && returnFocus.isConnected) returnFocus.focus();
+      }
+
+      function createManagedTag() {
+        const label = els.tagManagerNameInput.value.trim();
+        const key = tagKey(label);
+        const definitions = collectTagDefinitions();
+        if (!label) {
+          els.tagManagerError.textContent = '请输入标签名称。';
+          return;
+        }
+        if (definitions.has(key)) {
+          els.tagManagerError.textContent = `标签“${definitions.get(key)}”已存在，请修改名称。`;
+          return;
+        }
+        state.tags = mergeTagLabels(state.tags, [label]);
+        saveTagRegistry();
+        els.tagManagerNameInput.value = '';
+        els.tagManagerError.textContent = '';
+        renderTagManager();
+        renderTagFilter();
+        els.tagManagerNameInput.focus();
+      }
+
+      function renameManagedTag(oldKey, rawLabel) {
+        const label = String(rawLabel || '').trim();
+        const newKey = tagKey(label);
+        const definitions = collectTagDefinitions();
+        if (!label) {
+          els.tagManagerError.textContent = '标签名称不能为空。';
+          return;
+        }
+        if (newKey !== oldKey && definitions.has(newKey)) {
+          els.tagManagerError.textContent = `标签“${definitions.get(newKey)}”已存在，请修改名称。`;
+          return;
+        }
+
+        state.tags = mergeTagLabels(
+          state.tags.filter(item => tagKey(item) !== oldKey),
+          [label]
+        );
+        state.library.forEach(color => {
+          color.tags = normalizeTags(color.tags).map(item => tagKey(item) === oldKey ? label : item);
+        });
+
+        const oldId = `tag:${oldKey}`;
+        const newId = tagFilterId(label);
+        if (state.activeTagIds.has(oldId)) {
+          state.activeTagIds.delete(oldId);
+          state.activeTagLabels.delete(oldId);
+          state.activeTagIds.add(newId);
+          state.activeTagLabels.set(newId, label);
+        }
+        tagManagerState.editingKey = null;
+        els.tagManagerError.textContent = '';
+        saveTagRegistry();
+        saveLibrary();
+        renderTagManager();
+        renderLibrary();
+        renderCharts();
+      }
+
+      function deleteManagedTag(key) {
+        const definitions = collectTagDefinitions();
+        const label = definitions.get(key);
+        if (!label) return;
+        const affected = tagUsageCounts().get(key) || 0;
+        const message = affected
+          ? `确定删除标签“${label}”吗？它会从 ${affected} 个关联颜色中自动解绑。`
+          : `确定删除标签“${label}”吗？`;
+        if (!window.confirm(message)) return;
+
+        state.tags = normalizeTags(state.tags).filter(item => tagKey(item) !== key);
+        state.library.forEach(color => {
+          color.tags = normalizeTags(color.tags).filter(item => tagKey(item) !== key);
+        });
+        const filterId = `tag:${key}`;
+        state.activeTagIds.delete(filterId);
+        state.activeTagLabels.delete(filterId);
+        tagManagerState.editingKey = null;
+        els.tagManagerError.textContent = '';
+        saveTagRegistry();
+        saveLibrary();
+        renderTagManager();
+        renderLibrary();
+        renderCharts();
+      }
+
+      function renderTagManager() {
+        const definitions = collectTagDefinitions();
+        const counts = tagUsageCounts();
+        const entries = [...definitions.entries()].sort((a, b) => a[1].localeCompare(b[1], 'zh-Hans-CN'));
+        els.tagManagerList.replaceChildren();
+        if (!entries.length) {
+          const empty = document.createElement('div');
+          empty.className = 'tag-manager-empty';
+          empty.textContent = '还没有标签，可在上方新增。';
+          els.tagManagerList.appendChild(empty);
+          return;
+        }
+
+        entries.forEach(([key, label]) => {
+          const row = document.createElement('div');
+          if (tagManagerState.editingKey === key) {
+            row.className = 'tag-manager-row tag-manager-edit-row';
+            const input = document.createElement('input');
+            input.className = 'tag-name-input tag-manager-rename-input';
+            input.type = 'text';
+            input.maxLength = 24;
+            input.value = label;
+            input.setAttribute('aria-label', `重命名标签 ${label}`);
+            const actions = document.createElement('div');
+            actions.className = 'tag-manager-row-actions';
+            const save = document.createElement('button');
+            save.type = 'button';
+            save.className = 'tag-manager-tool';
+            save.textContent = '保存';
+            save.addEventListener('click', () => renameManagedTag(key, input.value));
+            const cancel = document.createElement('button');
+            cancel.type = 'button';
+            cancel.className = 'tag-manager-tool';
+            cancel.textContent = '取消';
+            cancel.addEventListener('click', () => {
+              tagManagerState.editingKey = null;
+              els.tagManagerError.textContent = '';
+              renderTagManager();
+            });
+            input.addEventListener('keydown', event => {
+              if (event.key === 'Enter') renameManagedTag(key, input.value);
+              if (event.key === 'Escape') {
+                tagManagerState.editingKey = null;
+                els.tagManagerError.textContent = '';
+                renderTagManager();
+              }
+            });
+            actions.append(save, cancel);
+            row.append(input, actions);
+            requestAnimationFrame(() => {
+              input.focus();
+              input.select();
+            });
+          } else {
+            row.className = 'tag-manager-row';
+            const meta = document.createElement('div');
+            meta.className = 'tag-manager-meta';
+            const name = document.createElement('span');
+            name.className = 'tag-manager-name';
+            name.textContent = label;
+            const count = document.createElement('span');
+            count.className = 'tag-manager-count';
+            count.textContent = `${counts.get(key) || 0} 色`;
+            meta.append(name, count);
+            const actions = document.createElement('div');
+            actions.className = 'tag-manager-row-actions';
+            const rename = document.createElement('button');
+            rename.type = 'button';
+            rename.className = 'tag-manager-tool';
+            rename.textContent = '重命名';
+            rename.addEventListener('click', () => {
+              tagManagerState.editingKey = key;
+              els.tagManagerError.textContent = '';
+              renderTagManager();
+            });
+            const remove = document.createElement('button');
+            remove.type = 'button';
+            remove.className = 'tag-manager-tool tag-manager-delete';
+            remove.textContent = '删除';
+            remove.addEventListener('click', () => deleteManagedTag(key));
+            actions.append(rename, remove);
+            row.append(meta, actions);
+          }
+          els.tagManagerList.appendChild(row);
+        });
       }
 
       function normalizeHex(value) {
@@ -1926,7 +2584,7 @@
         extractState.returnFocus = document.activeElement;
         resetImageExtractSession();
         els.extractModal.hidden = false;
-        document.body.classList.add('modal-open');
+        syncBodyModalState();
         els.closeExtract.focus();
       }
 
@@ -1934,7 +2592,7 @@
         const returnFocus = extractState.returnFocus;
         resetImageExtractSession();
         els.extractModal.hidden = true;
-        document.body.classList.remove('modal-open');
+        syncBodyModalState();
         extractState.returnFocus = null;
         if (returnFocus && typeof returnFocus.focus === 'function') returnFocus.focus();
       }
@@ -2230,26 +2888,40 @@
           renderExtractResults();
           return;
         }
-        state.library.unshift({
-          id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-          visible: true,
-          sourceType: 'hex',
-          sourceValue: color.hex,
-          key: `image:${displayLchKey(color)}`,
-          hex: color.hex,
-          rgb: [...color.rgb],
-          L: color.L,
-          C: color.C,
-          h: color.h,
-          outOfGamut: color.outOfGamut === true
+        const returnFocus = document.activeElement;
+        openTagDialog({
+          title: '添加图片颜色',
+          subtitle: `${color.hex} · 选择已有标签或新建标签，也可以不选择直接添加。`,
+          returnFocus,
+          onConfirm: tags => {
+            if (state.library.some(item => displayLchKey(item) === displayLchKey(color))) {
+              setExtractStatus('颜色已存在于色库', 'success');
+              renderExtractResults();
+              return;
+            }
+            state.library.unshift({
+              id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+              visible: true,
+              sourceType: 'hex',
+              sourceValue: color.hex,
+              key: `image:${displayLchKey(color)}`,
+              hex: color.hex,
+              rgb: [...color.rgb],
+              L: color.L,
+              C: color.C,
+              h: color.h,
+              outOfGamut: color.outOfGamut === true,
+              tags
+            });
+            saveLibrary();
+            renderLibrary();
+            renderCharts();
+            updateResult();
+            setExtractStatus('颜色已添加到色库', 'success');
+            hideTooltip();
+            renderExtractResults();
+          }
         });
-        saveLibrary();
-        renderLibrary();
-        renderCharts();
-        updateResult();
-        setExtractStatus('颜色已添加到色库', 'success');
-        hideTooltip();
-        renderExtractResults();
       }
 
       function parseColorInput(type, value) {
@@ -2324,9 +2996,28 @@
 
       function addCurrent() {
         if (!state.current || state.library.some(item => displayLchKey(item) === displayLchKey(state.current))) return;
-        state.library.unshift({ ...state.current, id: `${Date.now()}-${Math.random().toString(16).slice(2)}`, visible: true });
-        state.previewVisible = false;
-        saveLibrary(); renderLibrary(); renderCharts(); updateResult();
+        const color = { ...state.current, rgb: [...state.current.rgb] };
+        openTagDialog({
+          title: '添加颜色到色库',
+          subtitle: `${color.hex} · 选择已有标签或新建标签，也可以不选择直接添加。`,
+          onConfirm: tags => {
+            if (state.library.some(item => displayLchKey(item) === displayLchKey(color))) {
+              updateResult();
+              return;
+            }
+            state.library.unshift({
+              ...color,
+              id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+              visible: true,
+              tags
+            });
+            state.previewVisible = false;
+            saveLibrary();
+            renderLibrary();
+            renderCharts();
+            updateResult();
+          }
+        });
       }
 
       function svg(tag, attributes = {}, text = '') {
@@ -2350,9 +3041,9 @@
           root.appendChild(svg('line', { x1: cx, y1: cy, x2: x, y2: y, class: `grid-line ${i % 6 === 0 ? 'major' : 'soft'}` }));
         }
         root.appendChild(svg('text', { x: cx, y: 23, 'text-anchor': 'middle', class: 'degree-label' }, '0°'));
-        root.appendChild(svg('text', { x: 523, y: cy + 4, 'text-anchor': 'middle', class: 'degree-label' }, '270°'));
+        root.appendChild(svg('text', { x: 523, y: cy + 4, 'text-anchor': 'middle', class: 'degree-label' }, '90°'));
         root.appendChild(svg('text', { x: cx, y: 527, 'text-anchor': 'middle', class: 'degree-label' }, '180°'));
-        root.appendChild(svg('text', { x: 17, y: cy + 4, 'text-anchor': 'middle', class: 'degree-label' }, '90°'));
+        root.appendChild(svg('text', { x: 17, y: cy + 4, 'text-anchor': 'middle', class: 'degree-label' }, '270°'));
         return { cx, cy, radius };
       }
 
@@ -2520,11 +3211,11 @@
       function renderCharts() {
         const hue = renderHueBase(els.hueChart);
         const gamut = renderGamutBase(els.gamutChart);
-        const current = state.previewVisible ? state.current : null;
+        const current = state.previewVisible && !state.activeTagIds.size ? state.current : null;
         const currentKey = current ? displayLchKey(current) : null;
         const plottedKeys = new Set();
         const visible = state.library.filter(item => {
-          if (!item.visible) return false;
+          if (!item.visible || !colorMatchesActiveTags(item)) return false;
           const key = displayLchKey(item);
           if (key === currentKey || plottedKeys.has(key)) return false;
           plottedKeys.add(key);
@@ -2537,7 +3228,7 @@
       function renderColorOnCharts(color, current, hue, gamut) {
         const plottedC = Math.min(color.C, 100);
         const angle = color.h * Math.PI / 180;
-        const hx = hue.cx - Math.sin(angle) * hue.radius * plottedC / 100;
+        const hx = hue.cx + Math.sin(angle) * hue.radius * plottedC / 100;
         const hy = hue.cy - Math.cos(angle) * hue.radius * plottedC / 100;
         appendPoint(els.hueChart, hx, hy, color, current, `${current ? '当前 ' : ''}${pointLabel(color)}`);
         const gx = gamut.left + gamut.width * plottedC / 100;
@@ -2555,8 +3246,19 @@
         return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M9 3h6l1 4H8l1-4Zm-2 4 1 14h8l1-14M10 11v6M14 11v6"/></svg>';
       }
 
+      function editIcon() {
+        return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 16.5-.7 4.2 4.2-.7L19 8.5 15.5 5 4 16.5Z"/><path d="m13.8 6.7 3.5 3.5"/></svg>';
+      }
+
       function renderLibrary() {
-        els.count.textContent = String(state.library.length);
+        renderTagFilter();
+        const filtered = getFilteredLibrary();
+        els.count.textContent = state.activeTagIds.size
+          ? `${filtered.length} / ${state.library.length}`
+          : String(state.library.length);
+        els.count.title = state.activeTagIds.size
+          ? `当前筛选 ${filtered.length} 色，色库共 ${state.library.length} 色`
+          : `色库共 ${state.library.length} 色`;
         els.grid.replaceChildren();
         renderStatistics();
         if (!state.library.length) {
@@ -2566,7 +3268,15 @@
           els.grid.appendChild(empty);
           return;
         }
-        state.library.forEach(color => {
+        if (!filtered.length) {
+          const empty = document.createElement('div');
+          empty.className = 'empty';
+          empty.innerHTML = '<div><strong>没有符合当前标签的颜色</strong><span>取消部分标签或点击“清除筛选”查看其他颜色。</span></div>';
+          els.grid.appendChild(empty);
+          return;
+        }
+        filtered.forEach(color => {
+          color.tags = normalizeTags(color.tags);
           const card = document.createElement('article');
           card.className = `color-card${color.visible ? '' : ' is-hidden'}`;
           card.innerHTML = `
@@ -2579,11 +3289,48 @@
               <p class="card-line card-rgb">RGB ${color.hex}</p>
               <p class="card-line card-info">${colorInfoText(color)}</p>
             </div>
-            <button class="icon-button" type="button" aria-label="从色库删除 ${sourceLabel(color)}" title="删除">${trashIcon()}</button>`;
+            <div class="card-tools">
+              <button class="icon-button tag-edit-button" type="button" aria-label="编辑 ${sourceLabel(color)} 的标签" title="编辑标签">${editIcon()}</button>
+              <button class="icon-button delete-color-button" type="button" aria-label="从色库删除 ${sourceLabel(color)}" title="删除">${trashIcon()}</button>
+            </div>`;
+          if (color.tags.length) {
+            const tagsRow = document.createElement('div');
+            tagsRow.className = 'card-tags';
+            tagsRow.setAttribute('aria-label', `标签：${color.tags.join('、')}`);
+            color.tags.slice(0, 2).forEach(label => {
+              const chip = document.createElement('span');
+              chip.className = 'library-tag';
+              chip.textContent = label;
+              chip.title = label;
+              tagsRow.appendChild(chip);
+            });
+            if (color.tags.length > 2) {
+              const more = document.createElement('span');
+              more.className = 'library-tag library-tag-more';
+              more.textContent = `+${color.tags.length - 2}`;
+              more.title = color.tags.slice(2).join('、');
+              tagsRow.appendChild(more);
+            }
+            card.querySelector('.color-meta').appendChild(tagsRow);
+          }
           card.querySelector('.visibility-toggle').addEventListener('click', () => {
             color.visible = !color.visible; saveLibrary(); renderLibrary(); renderCharts();
           });
-          card.querySelector('.icon-button').addEventListener('click', () => {
+          card.querySelector('.tag-edit-button').addEventListener('click', event => {
+            openTagDialog({
+              title: '编辑颜色标签',
+              subtitle: `${color.hex} · 增加、取消或新建标签后点击确认。`,
+              initialTags: color.tags,
+              returnFocus: event.currentTarget,
+              onConfirm: tags => {
+                color.tags = tags;
+                saveLibrary();
+                renderLibrary();
+                renderCharts();
+              }
+            });
+          });
+          card.querySelector('.delete-color-button').addEventListener('click', () => {
             state.library = state.library.filter(item => item.id !== color.id);
             saveLibrary(); renderLibrary(); renderCharts(); updateResult();
           });
@@ -2648,12 +3395,45 @@
         convertCurrent(true);
       });
       els.selectAll.addEventListener('click', () => {
-        state.library.forEach(color => { color.visible = true; }); saveLibrary(); renderLibrary(); renderCharts();
+        getFilteredLibrary().forEach(color => { color.visible = true; });
+        saveLibrary(); renderLibrary(); renderCharts();
       });
       els.clearVisible.addEventListener('click', () => {
-        state.library.forEach(color => { color.visible = false; });
+        getFilteredLibrary().forEach(color => { color.visible = false; });
         state.previewVisible = false;
         saveLibrary(); renderLibrary(); renderCharts();
+      });
+      els.clearTagFilter.addEventListener('click', () => {
+        state.activeTagIds.clear();
+        state.activeTagLabels.clear();
+        renderLibrary();
+        renderCharts();
+      });
+      els.manageTags.addEventListener('click', openTagManager);
+      els.closeTagManager.addEventListener('click', closeTagManager);
+      els.addManagedTag.addEventListener('click', createManagedTag);
+      els.tagManagerNameInput.addEventListener('keydown', event => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          createManagedTag();
+        }
+      });
+      els.tagManagerModal.addEventListener('pointerdown', event => {
+        if (event.target === els.tagManagerModal) closeTagManager();
+      });
+
+      els.createTag.addEventListener('click', () => createTagFromInput());
+      els.tagNameInput.addEventListener('keydown', event => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          createTagFromInput();
+        }
+      });
+      els.confirmTag.addEventListener('click', confirmTagDialog);
+      els.cancelTag.addEventListener('click', () => closeTagDialog());
+      els.closeTag.addEventListener('click', () => closeTagDialog());
+      els.tagModal.addEventListener('pointerdown', event => {
+        if (event.target === els.tagModal) closeTagDialog();
       });
 
       const chooseExtractFile = () => {
@@ -2673,7 +3453,10 @@
         if (event.target === els.extractModal) closeImageExtractModal();
       });
       document.addEventListener('keydown', event => {
-        if (event.key === 'Escape' && !els.extractModal.hidden) closeImageExtractModal();
+        if (event.key !== 'Escape') return;
+        if (!els.tagModal.hidden) closeTagDialog();
+        else if (!els.tagManagerModal.hidden) closeTagManager();
+        else if (!els.extractModal.hidden) closeImageExtractModal();
       });
       els.extractDropzone.addEventListener('click', chooseExtractFile);
       els.extractDropzone.addEventListener('keydown', event => {
