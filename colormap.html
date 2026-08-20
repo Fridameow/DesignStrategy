@@ -501,7 +501,8 @@
     }
     .tag-filter-chip-count { margin-left: 5px; color: #777e84; font-variant-numeric: tabular-nums; }
     .tag-filter-chip.is-active .tag-filter-chip-count { color: #91cfc9; }
-    .tag-filter-clear {
+    .tag-filter-actions { display: flex; flex: 0 0 auto; align-items: center; margin-left: auto; }
+    .tag-filter-manage {
       flex: 0 0 auto;
       min-height: 28px;
       border: 0;
@@ -511,20 +512,7 @@
       font-size: 10px;
       font-weight: 620;
     }
-    .tag-filter-clear:hover:not(:disabled) { color: #dce0e2; }
-    .tag-filter-clear:disabled { cursor: default; opacity: .36; }
-    .tag-filter-actions { display: flex; align-items: center; gap: 11px; flex: 0 0 auto; }
-    .tag-filter-manage {
-      min-height: 28px;
-      border: 1px solid rgba(255,255,255,.12);
-      border-radius: 9px;
-      padding: 0 10px;
-      background: rgba(255,255,255,.045);
-      color: #b9bec2;
-      font-size: 10px;
-      font-weight: 650;
-    }
-    .tag-filter-manage:hover { border-color: rgba(129,216,208,.34); background: rgba(129,216,208,.08); color: #d9fffb; }
+    .tag-filter-manage:hover { color: #dce0e2; }
     .library-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 
     .color-card {
@@ -740,9 +728,7 @@
       .library-actions .ghost { flex: 1; }
       .tag-filter { align-items: stretch; flex-direction: column; }
       .tag-filter-main { align-items: flex-start; flex-direction: column; }
-      .tag-filter-actions { width: 100%; }
-      .tag-filter-manage { flex: 1; }
-      .tag-filter-clear { flex: 1; }
+      .tag-filter-actions { width: 100%; justify-content: flex-end; }
       .library-grid { grid-template-columns: 1fr; }
       .stats-row { grid-template-columns: 92px minmax(0, 1fr); gap: 9px; }
       .footnote { flex-direction: column; gap: 5px; }
@@ -901,7 +887,6 @@
         </div>
         <div class="tag-filter-actions">
           <button id="manageTagsBtn" class="tag-filter-manage" type="button">管理标签</button>
-          <button id="clearTagFilterBtn" class="tag-filter-clear" type="button" disabled>清除筛选</button>
         </div>
       </div>
       <div id="libraryGrid" class="library-grid"></div>
@@ -916,9 +901,9 @@
         <div class="stats-head">
           <div>
             <h2 id="hue-stats-title" class="stats-title">色相统计</h2>
-            <p class="stats-subtitle">10 种综合色系与无色相 · 统计色库中的全部颜色</p>
+            <p class="stats-subtitle">10 种综合色系与无色相 · 统计当前筛选且开启显示的颜色</p>
           </div>
-          <span id="hueStatsTotal" class="stats-total">0 色</span>
+          <span id="hueStatsTotal" class="stats-total">0 / 0</span>
         </div>
         <div id="hueStatsRows" class="stats-rows" aria-label="色相分类与原始颜色统计"></div>
       </article>
@@ -927,9 +912,9 @@
         <div class="stats-head">
           <div>
             <h2 id="gamut-stats-title" class="stats-title">色域统计</h2>
-            <p class="stats-subtitle">3 级明度 × 4 级彩度 · 统计色库中的全部颜色</p>
+            <p class="stats-subtitle">3 级明度 × 4 级彩度 · 统计当前筛选且开启显示的颜色</p>
           </div>
-          <span id="gamutStatsTotal" class="stats-total">0 色</span>
+          <span id="gamutStatsTotal" class="stats-total">0 / 0</span>
         </div>
         <div id="gamutStatsRows" class="stats-rows" aria-label="明度彩度分类与原始颜色统计"></div>
       </article>
@@ -1086,7 +1071,7 @@
         gamutChart: document.getElementById('gamutChart'), grid: document.getElementById('libraryGrid'),
         count: document.getElementById('libraryCount'), selectAll: document.getElementById('selectAllBtn'),
         clearVisible: document.getElementById('clearVisibleBtn'), tooltip: document.getElementById('tooltip'),
-        tagFilterChips: document.getElementById('tagFilterChips'), clearTagFilter: document.getElementById('clearTagFilterBtn'),
+        tagFilterChips: document.getElementById('tagFilterChips'),
         manageTags: document.getElementById('manageTagsBtn'), tagManagerModal: document.getElementById('tagManagerModal'),
         closeTagManager: document.getElementById('closeTagManagerBtn'), tagManagerNameInput: document.getElementById('tagManagerNameInput'),
         addManagedTag: document.getElementById('addManagedTagBtn'), tagManagerError: document.getElementById('tagManagerError'),
@@ -1350,7 +1335,6 @@
           const label = state.activeTagLabels.get(id) || '已删除标签';
           els.tagFilterChips.appendChild(filterChip(label, 0, id, true));
         });
-        els.clearTagFilter.disabled = !state.activeTagIds.size;
       }
 
       function renderTagDialogChoices() {
@@ -3153,15 +3137,15 @@
         return `RGB ${color.hex}<br>${pointLabel(color)}<br>${colorInfoText(color)}`;
       }
 
-      function renderCategoryStats(rowsElement, totalElement, categories, categoryForColor) {
+      function renderCategoryStats(rowsElement, totalElement, categories, categoryForColor, colors, libraryTotal) {
         const groups = new Map(categories.map(category => [category.label, []]));
-        state.library.forEach(color => {
+        colors.forEach(color => {
           const label = categoryForColor(color);
           if (groups.has(label)) groups.get(label).push(color);
         });
 
-        const total = state.library.length;
-        totalElement.textContent = `${total} 色`;
+        totalElement.textContent = `${colors.length} / ${libraryTotal}`;
+        totalElement.title = `当前参与统计 ${colors.length} 色，色库共 ${libraryTotal} 色`;
         rowsElement.replaceChildren();
 
         categories.forEach(category => {
@@ -3200,8 +3184,10 @@
       }
 
       function renderStatistics() {
-        renderCategoryStats(els.hueStatsRows, els.hueStatsTotal, HUE_STATS_CATEGORIES, hueStatsCategory);
-        renderCategoryStats(els.gamutStatsRows, els.gamutStatsTotal, GAMUT_STATS_CATEGORIES, gamutStatsCategory);
+        const visibleFilteredColors = getFilteredLibrary().filter(color => color.visible);
+        const libraryTotal = state.library.length;
+        renderCategoryStats(els.hueStatsRows, els.hueStatsTotal, HUE_STATS_CATEGORIES, hueStatsCategory, visibleFilteredColors, libraryTotal);
+        renderCategoryStats(els.gamutStatsRows, els.gamutStatsTotal, GAMUT_STATS_CATEGORIES, gamutStatsCategory, visibleFilteredColors, libraryTotal);
       }
 
       function displayLchKey(color) {
@@ -3271,7 +3257,7 @@
         if (!filtered.length) {
           const empty = document.createElement('div');
           empty.className = 'empty';
-          empty.innerHTML = '<div><strong>没有符合当前标签的颜色</strong><span>取消部分标签或点击“清除筛选”查看其他颜色。</span></div>';
+          empty.innerHTML = '<div><strong>没有符合当前标签的颜色</strong><span>取消部分标签或点击“全部”查看其他颜色。</span></div>';
           els.grid.appendChild(empty);
           return;
         }
@@ -3402,12 +3388,6 @@
         getFilteredLibrary().forEach(color => { color.visible = false; });
         state.previewVisible = false;
         saveLibrary(); renderLibrary(); renderCharts();
-      });
-      els.clearTagFilter.addEventListener('click', () => {
-        state.activeTagIds.clear();
-        state.activeTagLabels.clear();
-        renderLibrary();
-        renderCharts();
       });
       els.manageTags.addEventListener('click', openTagManager);
       els.closeTagManager.addEventListener('click', closeTagManager);
