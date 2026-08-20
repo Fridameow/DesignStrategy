@@ -1034,8 +1034,8 @@
         previewVisible: false,
         library: loadLibrary(),
         tags: loadTagRegistry(),
-        activeTagIds: new Set(),
-        activeTagLabels: new Map()
+        activeTagId: null,
+        activeTagLabel: null
       };
       state.tags = mergeTagLabels(state.tags, state.library.flatMap(color => normalizeTags(color.tags)));
       const touchUi = 'ontouchstart' in window
@@ -1208,14 +1208,13 @@
         return tags.map(tagFilterId);
       }
 
-      function colorMatchesActiveTags(color) {
-        if (!state.activeTagIds.size) return true;
-        const colorIds = new Set(colorTagIds(color));
-        return [...state.activeTagIds].every(id => colorIds.has(id));
+      function colorMatchesActiveTag(color) {
+        if (!state.activeTagId) return true;
+        return colorTagIds(color).includes(state.activeTagId);
       }
 
       function getFilteredLibrary() {
-        return state.library.filter(colorMatchesActiveTags);
+        return state.library.filter(colorMatchesActiveTag);
       }
 
       function collectTagDefinitions() {
@@ -1297,14 +1296,11 @@
         }
         button.addEventListener('click', () => {
           if (id === 'all') {
-            state.activeTagIds.clear();
-            state.activeTagLabels.clear();
-          } else if (state.activeTagIds.has(id)) {
-            state.activeTagIds.delete(id);
-            state.activeTagLabels.delete(id);
-          } else {
-            state.activeTagIds.add(id);
-            state.activeTagLabels.set(id, label);
+            state.activeTagId = null;
+            state.activeTagLabel = null;
+          } else if (state.activeTagId !== id) {
+            state.activeTagId = id;
+            state.activeTagLabel = label;
           }
           renderLibrary();
           renderCharts();
@@ -1324,19 +1320,18 @@
         });
 
         els.tagFilterChips.replaceChildren();
-        els.tagFilterChips.appendChild(filterChip('全部', state.library.length, 'all', !state.activeTagIds.size));
+        els.tagFilterChips.appendChild(filterChip('全部', state.library.length, 'all', !state.activeTagId));
         const entries = [...labels.entries()].sort((a, b) => a[1].localeCompare(b[1], 'zh-Hans-CN'));
         entries.forEach(([key, label]) => {
           const id = tagFilterId(label);
-          state.activeTagLabels.set(id, state.activeTagLabels.get(id) || label);
-          els.tagFilterChips.appendChild(filterChip(label, counts.get(key) || 0, id, state.activeTagIds.has(id)));
+          els.tagFilterChips.appendChild(filterChip(label, counts.get(key) || 0, id, state.activeTagId === id));
         });
-        state.activeTagIds.forEach(id => {
-          const alreadyRendered = [...labels.values()].some(label => tagFilterId(label) === id);
-          if (alreadyRendered) return;
-          const label = state.activeTagLabels.get(id) || '已删除标签';
-          els.tagFilterChips.appendChild(filterChip(label, 0, id, true));
-        });
+        if (state.activeTagId) {
+          const alreadyRendered = [...labels.values()].some(label => tagFilterId(label) === state.activeTagId);
+          if (!alreadyRendered) {
+            els.tagFilterChips.appendChild(filterChip(state.activeTagLabel || '已删除标签', 0, state.activeTagId, true));
+          }
+        }
       }
 
       function renderTagDialogChoices() {
@@ -1503,11 +1498,9 @@
 
         const oldId = `tag:${oldKey}`;
         const newId = tagFilterId(label);
-        if (state.activeTagIds.has(oldId)) {
-          state.activeTagIds.delete(oldId);
-          state.activeTagLabels.delete(oldId);
-          state.activeTagIds.add(newId);
-          state.activeTagLabels.set(newId, label);
+        if (state.activeTagId === oldId) {
+          state.activeTagId = newId;
+          state.activeTagLabel = label;
         }
         tagManagerState.editingKey = null;
         els.tagManagerError.textContent = '';
@@ -1533,8 +1526,10 @@
           color.tags = normalizeTags(color.tags).filter(item => tagKey(item) !== key);
         });
         const filterId = `tag:${key}`;
-        state.activeTagIds.delete(filterId);
-        state.activeTagLabels.delete(filterId);
+        if (state.activeTagId === filterId) {
+          state.activeTagId = null;
+          state.activeTagLabel = null;
+        }
         tagManagerState.editingKey = null;
         els.tagManagerError.textContent = '';
         saveTagRegistry();
@@ -3199,11 +3194,11 @@
       function renderCharts() {
         const hue = renderHueBase(els.hueChart);
         const gamut = renderGamutBase(els.gamutChart);
-        const current = state.previewVisible && !state.activeTagIds.size ? state.current : null;
+        const current = state.previewVisible && !state.activeTagId ? state.current : null;
         const currentKey = current ? displayLchKey(current) : null;
         const plottedKeys = new Set();
         const visible = state.library.filter(item => {
-          if (!item.visible || !colorMatchesActiveTags(item)) return false;
+          if (!item.visible || !colorMatchesActiveTag(item)) return false;
           const key = displayLchKey(item);
           if (key === currentKey || plottedKeys.has(key)) return false;
           plottedKeys.add(key);
@@ -3241,10 +3236,10 @@
       function renderLibrary() {
         renderTagFilter();
         const filtered = getFilteredLibrary();
-        els.count.textContent = state.activeTagIds.size
+        els.count.textContent = state.activeTagId
           ? `${filtered.length} / ${state.library.length}`
           : String(state.library.length);
-        els.count.title = state.activeTagIds.size
+        els.count.title = state.activeTagId
           ? `当前筛选 ${filtered.length} 色，色库共 ${state.library.length} 色`
           : `色库共 ${state.library.length} 色`;
         els.grid.replaceChildren();
