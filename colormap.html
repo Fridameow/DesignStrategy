@@ -417,6 +417,38 @@
     .plot-point { cursor: pointer; transition: opacity .15s ease; filter: drop-shadow(0 3px 6px rgba(0,0,0,.45)); }
     .plot-point:hover { opacity: .72; }
 
+    .cluster-layer { pointer-events: none; }
+    .cluster-shape {
+      pointer-events: visiblePainted;
+      cursor: pointer;
+      opacity: 0;
+      animation: clusterFadeIn .34s ease forwards;
+      transition: opacity .16s ease, filter .16s ease, stroke-width .16s ease;
+    }
+    .cluster-shape.actual {
+      fill: var(--cluster-color);
+      fill-opacity: .075;
+      stroke: var(--cluster-color);
+      stroke-width: 1.45;
+      stroke-opacity: .7;
+    }
+    .cluster-shape.recommended {
+      fill: var(--cluster-color);
+      fill-opacity: .035;
+      stroke: var(--cluster-color);
+      stroke-width: 1.25;
+      stroke-opacity: .56;
+      stroke-dasharray: 6 5;
+    }
+    .cluster-shape.is-active { filter: brightness(1.35) saturate(1.12); stroke-width: 2.35; }
+    .cluster-shape.is-muted { opacity: .24 !important; }
+    .cluster-member.is-cluster-muted { opacity: .24; }
+    .cluster-member.is-cluster-active { opacity: 1; filter: drop-shadow(0 0 7px var(--cluster-color)); }
+    .recommended-point { cursor: pointer; }
+    .recommended-point circle { fill: rgba(7,8,9,.82); stroke: var(--cluster-color); stroke-width: 2; stroke-dasharray: 3 2; }
+    .recommended-point path { fill: none; stroke: var(--cluster-color); stroke-width: 1.6; stroke-linecap: round; }
+    @keyframes clusterFadeIn { to { opacity: 1; } }
+
     .tooltip {
       position: fixed;
       z-index: 140;
@@ -515,6 +547,85 @@
     }
     .tag-filter-manage:hover { color: #dce0e2; }
     .library-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+
+    .cluster-panel { margin-bottom: 22px; padding: 24px 26px; border-radius: var(--radius-xl); }
+    .cluster-panel-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+    .cluster-panel-title { margin: 0 0 6px; font-size: 17px; font-weight: 650; letter-spacing: -.02em; }
+    .cluster-panel-subtitle { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
+    .cluster-explore {
+      flex: 0 0 auto;
+      min-height: 38px;
+      border: 1px solid rgba(129,216,208,.34);
+      border-radius: 11px;
+      padding: 0 15px;
+      background: rgba(129,216,208,.11);
+      color: #d9fffb;
+      font-size: 11px;
+      font-weight: 680;
+    }
+    .cluster-explore:hover:not(:disabled) { background: rgba(129,216,208,.18); }
+    .cluster-explore:disabled { border-color: var(--line); background: rgba(255,255,255,.025); color: #62696e; cursor: not-allowed; }
+    .cluster-metrics { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 17px; }
+    .cluster-metric {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      min-height: 29px;
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 999px;
+      padding: 0 10px;
+      background: rgba(255,255,255,.035);
+      color: #8e959a;
+      font-size: 10px;
+    }
+    .cluster-metric strong { color: #d5d9db; font-weight: 650; }
+    .cluster-notice { margin: 14px 0 0; color: #8d9499; font-size: 11px; line-height: 1.6; }
+    .cluster-notice.is-warning { color: #c9a987; }
+    .cluster-summaries { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 16px; }
+    .cluster-summary {
+      min-width: 0;
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 14px;
+      padding: 12px;
+      background: rgba(5,6,7,.36);
+      cursor: pointer;
+      transition: border-color .16s ease, background .16s ease, opacity .16s ease;
+    }
+    .cluster-summary:hover, .cluster-summary.is-active { border-color: var(--cluster-color); background: rgba(255,255,255,.052); }
+    .cluster-summary.is-muted { opacity: .42; }
+    .cluster-summary-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .cluster-summary-name { display: flex; align-items: center; gap: 7px; min-width: 0; color: #e4e6e7; font-size: 11px; font-weight: 680; }
+    .cluster-summary-dot { flex: 0 0 auto; width: 8px; height: 8px; border-radius: 50%; background: var(--cluster-color); box-shadow: 0 0 0 3px color-mix(in srgb, var(--cluster-color) 18%, transparent); }
+    .cluster-confidence { color: #81888d; font-size: 9px; white-space: nowrap; }
+    .cluster-summary-type { margin: 8px 0 4px; color: #b9bec1; font-size: 10px; }
+    .cluster-summary-range { margin: 0; color: #777f84; font-size: 9px; line-height: 1.55; }
+    .recommendation-section { margin-top: 20px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.08); }
+    .recommendation-section[hidden] { display: none; }
+    .recommendation-head { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; margin-bottom: 12px; }
+    .recommendation-title { margin: 0; font-size: 13px; font-weight: 650; }
+    .recommendation-note { color: #747c81; font-size: 9px; }
+    .recommendation-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+    .recommendation-card {
+      display: grid;
+      grid-template-columns: 54px minmax(0, 1fr);
+      gap: 11px;
+      min-width: 0;
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 14px;
+      padding: 10px;
+      background: rgba(5,6,7,.4);
+      cursor: pointer;
+      transition: border-color .16s ease, background .16s ease, opacity .16s ease;
+    }
+    .recommendation-card:hover, .recommendation-card.is-active { border-color: var(--cluster-color); background: rgba(255,255,255,.055); }
+    .recommendation-card.is-muted { opacity: .38; }
+    .recommendation-swatch { width: 54px; height: 54px; border-radius: 11px; background: var(--swatch); box-shadow: inset 0 0 0 1px rgba(255,255,255,.2); }
+    .recommendation-meta { min-width: 0; }
+    .recommendation-hex { margin: 0 0 3px; color: #eef0f0; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11px; font-weight: 700; }
+    .recommendation-line { margin: 0; overflow: hidden; color: #8f969b; font-size: 9px; line-height: 1.55; text-overflow: ellipsis; white-space: nowrap; }
+    .recommendation-reason { margin: 6px 0 8px; color: #b6bbbe; font-size: 9px; line-height: 1.5; }
+    .recommendation-add { width: 100%; min-height: 30px; border: 1px solid rgba(129,216,208,.25); border-radius: 9px; background: rgba(129,216,208,.08); color: #cffffa; font-size: 10px; font-weight: 650; }
+    .recommendation-add:hover { background: rgba(129,216,208,.15); }
 
     .color-card {
       display: grid;
@@ -695,6 +806,8 @@
       .result-card { grid-template-columns: 96px minmax(0, 1fr); min-height: 0; }
       .swatch-large { width: 96px; }
       .library-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .cluster-summaries { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .recommendation-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .extract-content { grid-template-columns: minmax(0, .86fr) minmax(460px, 1.14fr); }
     }
 
@@ -715,7 +828,7 @@
     @media (max-width: 560px) {
       .app { width: calc(100% - 20px); padding-bottom: 40px; }
       .brand-tag { display: none; }
-      .converter, .chart-card, .library, .stats-card { padding: 18px; border-radius: 22px; }
+      .converter, .chart-card, .library, .stats-card, .cluster-panel { padding: 18px; border-radius: 22px; }
       .input-row { grid-template-columns: 1fr; }
       .primary { width: 100%; }
       .image-extract-trigger { width: 100%; }
@@ -732,6 +845,9 @@
       .tag-filter-actions { grid-column: 2; grid-row: 1; width: auto; margin-left: 10px; }
       .tag-filter-chips { grid-column: 1 / -1; grid-row: 2; margin-top: 4px; }
       .library-grid { grid-template-columns: 1fr; }
+      .cluster-panel-head { flex-direction: column; }
+      .cluster-explore { width: 100%; }
+      .cluster-summaries, .recommendation-grid { grid-template-columns: 1fr; }
       .stats-row { grid-template-columns: 92px minmax(0, 1fr); gap: 9px; }
       .footnote { flex-direction: column; gap: 5px; }
       .extract-overlay { padding: 8px; }
@@ -895,6 +1011,31 @@
       <div class="footnote">
         <span>颜色、标签与显示选择自动保存在当前浏览器。</span>
         <span>当 C &gt; 100 时，图中点位会压在边界，数值仍保留真实计算结果。</span>
+      </div>
+    </section>
+
+    <section id="clusterPanel" class="cluster-panel glass" aria-labelledby="cluster-panel-title">
+      <div class="cluster-panel-head">
+        <div>
+          <h2 id="cluster-panel-title" class="cluster-panel-title">色彩聚落与推荐色</h2>
+          <p class="cluster-panel-subtitle">基于当前 Tag 中已开启显示的样本推导。聚落与潜在推荐区域仅用于探索，不代表普遍有效的色彩标准。</p>
+        </div>
+        <button id="exploreRecommendationsBtn" class="cluster-explore" type="button" disabled>探索推荐色</button>
+      </div>
+      <div class="cluster-metrics" aria-label="聚落分析摘要">
+        <span class="cluster-metric">分析 Tag <strong id="clusterTagName">未选择</strong></span>
+        <span class="cluster-metric">当前样本 <strong id="clusterSampleCount">0</strong></span>
+        <span class="cluster-metric">有效样本 <strong id="clusterEffectiveCount">0</strong></span>
+        <span class="cluster-metric">聚落数量 <strong id="clusterCount">0</strong></span>
+      </div>
+      <p id="clusterNotice" class="cluster-notice">选择一个具体 Tag 后，将自动识别当前数据中的主要聚落。</p>
+      <div id="clusterSummaries" class="cluster-summaries"></div>
+      <div id="recommendationSection" class="recommendation-section" hidden>
+        <div class="recommendation-head">
+          <h3 class="recommendation-title">潜在推荐色</h3>
+          <span id="recommendationNote" class="recommendation-note">推荐色正式添加前不会进入色库与统计。</span>
+        </div>
+        <div id="recommendationGrid" class="recommendation-grid"></div>
       </div>
     </section>
 
@@ -1063,6 +1204,22 @@
         returnFocus: null
       };
       const tagManagerState = { editingKey: null, returnFocus: null };
+      const clusterState = {
+        fingerprint: '',
+        analysisTagId: null,
+        analysisTagLabel: null,
+        sampleCount: 0,
+        effectiveCount: 0,
+        clusters: [],
+        colorClusterIds: new Map(),
+        recommendations: [],
+        recommendationFingerprint: '',
+        showRecommendationRange: false,
+        focusedClusterId: null,
+        hoveredClusterId: null,
+        selectedRecommendationId: null,
+        recommendationCache: new Map()
+      };
       const els = {
         input: document.getElementById('hexInput'), inputType: document.getElementById('inputType'),
         convert: document.getElementById('convertBtn'),
@@ -1083,6 +1240,12 @@
         tagNameInput: document.getElementById('tagNameInput'), createTag: document.getElementById('createTagBtn'),
         tagDialogError: document.getElementById('tagDialogError'), cancelTag: document.getElementById('cancelTagDialogBtn'),
         confirmTag: document.getElementById('confirmTagDialogBtn'), closeTag: document.getElementById('closeTagDialogBtn'),
+        clusterPanel: document.getElementById('clusterPanel'), clusterTagName: document.getElementById('clusterTagName'),
+        clusterSampleCount: document.getElementById('clusterSampleCount'), clusterEffectiveCount: document.getElementById('clusterEffectiveCount'),
+        clusterCount: document.getElementById('clusterCount'), clusterNotice: document.getElementById('clusterNotice'),
+        clusterSummaries: document.getElementById('clusterSummaries'), exploreRecommendations: document.getElementById('exploreRecommendationsBtn'),
+        recommendationSection: document.getElementById('recommendationSection'), recommendationGrid: document.getElementById('recommendationGrid'),
+        recommendationNote: document.getElementById('recommendationNote'),
         hueStatsRows: document.getElementById('hueStatsRows'), hueStatsTotal: document.getElementById('hueStatsTotal'),
         gamutStatsRows: document.getElementById('gamutStatsRows'), gamutStatsTotal: document.getElementById('gamutStatsTotal'),
         openExtract: document.getElementById('openImageExtractBtn'), extractModal: document.getElementById('imageExtractModal'),
@@ -1130,6 +1293,85 @@
           minShare: .008, accentMinShare: .006, accentChroma: 24, accentReplacementRatio: .12
         }
       };
+
+      const CLUSTER_CONFIG = Object.freeze({
+        minSamples: 3,
+        maxClustersBySampleCount: [
+          { below: 6, max: 1 },
+          { below: 15, max: 2 },
+          { below: 30, max: 3 },
+          { below: Infinity, max: 5 }
+        ],
+        duplicateDeltaE: 2.4,
+        lowChromaThreshold: 5,
+        toneMergeDistance: 1.08,
+        toneLightnessScale: 13,
+        toneChromaScale: 12,
+        hueSplitGap: 68,
+        hueSplitMinimumMembers: 2,
+        hueConcentrationThreshold: .56,
+        broadHueCoverage: 190,
+        ringHueCoverage: 235,
+        ringContinuityRatio: .48,
+        ringChromaRelativeSpread: .46,
+        outlierLowerQuantile: .10,
+        outlierUpperQuantile: .90,
+        boundaryPaddingL: 4.5,
+        boundaryPaddingC: 4.5,
+        boundaryPaddingHue: 10,
+        ringPadding: 4,
+        recommendationPaddingL: 5.5,
+        recommendationPaddingC: 6,
+        recommendationPaddingHue: 9,
+        recommendationMinDeltaE: 5.2,
+        recommendationFallbackMinDeltaE: 4.1,
+        recommendationIdealDeltaE: 10.5,
+        recommendationMaxNearestDeltaE: 18,
+        recommendationLowConfidenceScale: .48,
+        recommendationMediumConfidenceScale: .74,
+        recommendationCorePenalty: 3.4,
+        recommendationCenterPenalty: .34,
+        recommendationExcessDeltaEPenalty: .42,
+        recommendationCompactLightnessSpread: 12,
+        recommendationCompactChromaSpread: 13,
+        recommendationCompactHueCoverage: 24,
+        recommendationCompactHuePadding: 28,
+        recommendationHuePaddingFloor: 16,
+        recommendationCompactTonePenalty: 1.3,
+        recommendationHueGapReward: .045,
+        recommendationMinHueSeparation: 24,
+        recommendationCompactMinHueSeparation: 38,
+        recommendationCompactHueAllowance: 6,
+        recommendationFallbackExpansionL: 3,
+        recommendationFallbackExpansionC: 6,
+        recommendationFallbackExpansionHue: 12,
+        maxRecommendationsPerCluster: 4,
+        splineDegree: 5,
+        contourResampleCount: 32,
+        contourDrawSamples: 96,
+        smoothingWeight: .62,
+        hueContourResampleCount: 44,
+        hueContourDrawSamples: 128,
+        hueSmoothingWeight: .84,
+        hueRadialSmoothingPasses: 3,
+        gamutContourSupportSamples: 12,
+        gamutContourPaddingScale: 1.18,
+        gamutRecommendationPaddingScale: 1.10,
+        gamutSmoothingWeight: .64,
+        hueCapTangentialScale: .56,
+        hueMaxAbsoluteTurning: 3.35,
+        gamutMaxAbsoluteTurning: 2.55,
+        contourMinimumClearance: .32,
+        maxBoundaryDisplacement: 16,
+        maxAreaChange: .24,
+        curveFitError: 3.4,
+        chartBoundsPadding: 2,
+        debounceMs: 220,
+        fallbackLevels: ['periodic-quintic', 'periodic-cubic', 'raw'],
+        typeOverrides: Object.freeze({})
+      });
+
+      const CLUSTER_COLORS = ['#81D8D0', '#F0B768', '#B78AF2', '#F0798C', '#82C98E'];
 
       const HUE_STATS_CATEGORIES = [
         { label: '红色系', color: '#F44759' },
@@ -1881,6 +2123,554 @@
         const hTerm = dHp / Sh;
         return Math.sqrt(lTerm * lTerm + cTerm * cTerm + hTerm * hTerm + Rt * cTerm * hTerm);
       }
+
+      // CLUSTER_ENGINE_START — pure, deterministic analysis functions.
+      function clampNumber(value, minimum, maximum) {
+        return Math.min(maximum, Math.max(minimum, value));
+      }
+
+      function weightedQuantile(items, getter, quantile) {
+        if (!items.length) return 0;
+        const sorted = items
+          .map(item => ({ value: Number(getter(item)), weight: Math.max(.0001, Number(item.weight) || 1) }))
+          .sort((first, second) => first.value - second.value);
+        const total = sorted.reduce((sum, item) => sum + item.weight, 0);
+        const target = clampNumber(quantile, 0, 1) * total;
+        let accumulated = 0;
+        for (const item of sorted) {
+          accumulated += item.weight;
+          if (accumulated >= target) return item.value;
+        }
+        return sorted[sorted.length - 1].value;
+      }
+
+      function clusterLimitForSampleCount(count) {
+        const entry = CLUSTER_CONFIG.maxClustersBySampleCount.find(item => count < item.below);
+        return entry ? entry.max : 1;
+      }
+
+      function colorLabSample(color) {
+        const radians = normalizeHue(color.h) * Math.PI / 180;
+        return {
+          L: Number(color.L),
+          C: Math.max(0, Number(color.C)),
+          h: normalizeHue(Number(color.h)),
+          a: Number(color.C) * Math.cos(radians),
+          b: Number(color.C) * Math.sin(radians),
+          weight: 1,
+          memberIds: [String(color.id)],
+          sourceColors: [color]
+        };
+      }
+
+      function refreshSamplePolar(sample) {
+        sample.C = Math.hypot(sample.a, sample.b);
+        sample.h = sample.C < 1e-8 ? 0 : normalizeHue(Math.atan2(sample.b, sample.a) * 180 / Math.PI);
+        return sample;
+      }
+
+      function mergeLabSamples(target, source) {
+        const total = target.weight + source.weight;
+        target.L = (target.L * target.weight + source.L * source.weight) / total;
+        target.a = (target.a * target.weight + source.a * source.weight) / total;
+        target.b = (target.b * target.weight + source.b * source.weight) / total;
+        target.weight = total;
+        target.memberIds.push(...source.memberIds);
+        target.sourceColors.push(...source.sourceColors);
+        return refreshSamplePolar(target);
+      }
+
+      function preprocessClusterSamples(colors) {
+        const raw = colors.map(colorLabSample).sort((first, second) =>
+          first.L - second.L || first.C - second.C || first.h - second.h || first.memberIds[0].localeCompare(second.memberIds[0]));
+        const merged = [];
+        raw.forEach(sample => {
+          let nearest = null;
+          let nearestDistance = Infinity;
+          merged.forEach(candidate => {
+            const distance = deltaE2000(candidate, sample);
+            if (distance < nearestDistance) {
+              nearestDistance = distance;
+              nearest = candidate;
+            }
+          });
+          if (nearest && nearestDistance < CLUSTER_CONFIG.duplicateDeltaE) mergeLabSamples(nearest, sample);
+          else merged.push({ ...sample, memberIds: [...sample.memberIds], sourceColors: [...sample.sourceColors] });
+        });
+        return merged.sort((first, second) => first.L - second.L || first.C - second.C || first.h - second.h);
+      }
+
+      function toneGroupFromMembers(members) {
+        const weight = members.reduce((sum, item) => sum + item.weight, 0);
+        return {
+          members,
+          weight,
+          L: members.reduce((sum, item) => sum + item.L * item.weight, 0) / weight,
+          C: members.reduce((sum, item) => sum + item.C * item.weight, 0) / weight
+        };
+      }
+
+      function toneGroupDistance(first, second) {
+        const dL = (first.L - second.L) / CLUSTER_CONFIG.toneLightnessScale;
+        const dC = (first.C - second.C) / CLUSTER_CONFIG.toneChromaScale;
+        return Math.hypot(dL, dC);
+      }
+
+      function mergeToneGroups(first, second) {
+        return toneGroupFromMembers([...first.members, ...second.members]);
+      }
+
+      function clusterToneRegions(samples, maximumClusters) {
+        let groups = samples.map(sample => toneGroupFromMembers([sample]));
+        while (groups.length > 1) {
+          let best = null;
+          for (let first = 0; first < groups.length; first += 1) {
+            for (let second = first + 1; second < groups.length; second += 1) {
+              const distance = toneGroupDistance(groups[first], groups[second]);
+              if (!best || distance < best.distance - 1e-9
+                || (Math.abs(distance - best.distance) < 1e-9 && `${first}:${second}` < `${best.first}:${best.second}`)) {
+                best = { first, second, distance };
+              }
+            }
+          }
+          if (!best) break;
+          if (groups.length <= maximumClusters && best.distance >= CLUSTER_CONFIG.toneMergeDistance) break;
+          const merged = mergeToneGroups(groups[best.first], groups[best.second]);
+          groups = groups.filter((_, index) => index !== best.first && index !== best.second);
+          groups.push(merged);
+          groups.sort((a, b) => a.L - b.L || a.C - b.C);
+        }
+        return groups;
+      }
+
+      function circularHueStatistics(samples) {
+        const chromatic = samples.filter(item => item.C >= CLUSTER_CONFIG.lowChromaThreshold);
+        const totalWeight = chromatic.reduce((sum, item) => sum + item.weight, 0);
+        if (!chromatic.length || totalWeight <= 0) {
+          return {
+            chromaticWeight: 0, concentration: 0, center: 0, coverage: 360,
+            arcStart: 0, arcEnd: 360, largestGap: 360, continuity: 0
+          };
+        }
+        let x = 0, y = 0;
+        chromatic.forEach(item => {
+          const angle = item.h * Math.PI / 180;
+          x += Math.cos(angle) * item.weight;
+          y += Math.sin(angle) * item.weight;
+        });
+        const concentration = Math.hypot(x, y) / totalWeight;
+        const center = normalizeHue(Math.atan2(y, x) * 180 / Math.PI);
+        const sorted = [...chromatic].sort((first, second) => first.h - second.h);
+        let largestGap = -1;
+        let gapIndex = 0;
+        sorted.forEach((item, index) => {
+          const next = sorted[(index + 1) % sorted.length];
+          const gap = index === sorted.length - 1 ? next.h + 360 - item.h : next.h - item.h;
+          if (gap > largestGap) { largestGap = gap; gapIndex = index; }
+        });
+        const unwrapStart = sorted[(gapIndex + 1) % sorted.length].h;
+        const unwrapped = sorted.map(item => ({
+          ...item,
+          unwrappedHue: item.h < unwrapStart ? item.h + 360 : item.h
+        }));
+        const arcStart = weightedQuantile(unwrapped, item => item.unwrappedHue, CLUSTER_CONFIG.outlierLowerQuantile);
+        const arcEnd = weightedQuantile(unwrapped, item => item.unwrappedHue, CLUSTER_CONFIG.outlierUpperQuantile);
+        const coverage = Math.min(360, Math.max(0, arcEnd - arcStart));
+        const occupied = new Set(chromatic.map(item => Math.floor(normalizeHue(item.h) / 30))).size;
+        const possibleBins = Math.max(1, Math.min(12, Math.ceil(Math.max(coverage, 30) / 30)));
+        const continuity = Math.min(1, occupied / possibleBins);
+        return { chromaticWeight: totalWeight, concentration, center, coverage, arcStart, arcEnd, largestGap, continuity };
+      }
+
+      function splitToneRegionByHue(group) {
+        const chromatic = group.members.filter(item => item.C >= CLUSTER_CONFIG.lowChromaThreshold).sort((a, b) => a.h - b.h);
+        const neutral = group.members.filter(item => item.C < CLUSTER_CONFIG.lowChromaThreshold);
+        if (chromatic.length < CLUSTER_CONFIG.hueSplitMinimumMembers * 2) return [group];
+        const gaps = chromatic.map((item, index) => {
+          const next = chromatic[(index + 1) % chromatic.length];
+          return {
+            index,
+            gap: index === chromatic.length - 1 ? next.h + 360 - item.h : next.h - item.h
+          };
+        });
+        const breaks = gaps.filter(item => item.gap >= CLUSTER_CONFIG.hueSplitGap).map(item => item.index);
+        if (breaks.length < 2) return [group];
+        const components = breaks.map((breakIndex, componentIndex) => {
+          const nextBreak = breaks[(componentIndex + 1) % breaks.length];
+          const members = [];
+          let cursor = (breakIndex + 1) % chromatic.length;
+          const stop = (nextBreak + 1) % chromatic.length;
+          while (cursor !== stop) {
+            members.push(chromatic[cursor]);
+            cursor = (cursor + 1) % chromatic.length;
+          }
+          return toneGroupFromMembers(members);
+        }).filter(component => component.members.length >= CLUSTER_CONFIG.hueSplitMinimumMembers);
+        if (components.length < 2) return [group];
+        if (neutral.length) {
+          components.sort((a, b) => b.weight - a.weight);
+          components[0] = toneGroupFromMembers([...components[0].members, ...neutral]);
+        }
+        return components.sort((a, b) => a.L - b.L || a.C - b.C);
+      }
+
+      function compactClusterGroups(groups, maximumClusters) {
+        let result = groups.map(group => toneGroupFromMembers(group.members));
+        while (result.length > maximumClusters) {
+          result.sort((a, b) => a.weight - b.weight || a.L - b.L || a.C - b.C);
+          const smallest = result.shift();
+          let nearestIndex = 0;
+          let nearestDistance = Infinity;
+          result.forEach((candidate, index) => {
+            const distance = toneGroupDistance(smallest, candidate);
+            if (distance < nearestDistance) { nearestDistance = distance; nearestIndex = index; }
+          });
+          result[nearestIndex] = mergeToneGroups(result[nearestIndex], smallest);
+        }
+        return result;
+      }
+
+      function rawMemberCount(samples) {
+        return samples.reduce((sum, sample) => sum + sample.memberIds.length, 0);
+      }
+
+      function buildClusterModel(group, index, tagLabel) {
+        const members = group.members;
+        const hue = circularHueStatistics(members);
+        const totalWeight = members.reduce((sum, item) => sum + item.weight, 0);
+        const L10 = weightedQuantile(members, item => item.L, CLUSTER_CONFIG.outlierLowerQuantile);
+        const L50 = weightedQuantile(members, item => item.L, .5);
+        const L90 = weightedQuantile(members, item => item.L, CLUSTER_CONFIG.outlierUpperQuantile);
+        const C10 = weightedQuantile(members, item => item.C, CLUSTER_CONFIG.outlierLowerQuantile);
+        const C50 = weightedQuantile(members, item => item.C, .5);
+        const C90 = weightedQuantile(members, item => item.C, CLUSTER_CONFIG.outlierUpperQuantile);
+        const chromaticRatio = hue.chromaticWeight / Math.max(totalWeight, 1e-9);
+        const override = CLUSTER_CONFIG.typeOverrides[tagLabel] && CLUSTER_CONFIG.typeOverrides[tagLabel][index];
+        let type = override === 'hue-limited' || override === 'tone-limited'
+          ? override
+          : (chromaticRatio >= .35 && hue.concentration >= CLUSTER_CONFIG.hueConcentrationThreshold && hue.coverage < CLUSTER_CONFIG.broadHueCoverage
+            ? 'hue-limited'
+            : 'tone-limited');
+        const relativeChromaSpread = (C90 - C10) / Math.max(C50, 8);
+        const ring = type === 'tone-limited'
+          && chromaticRatio >= .55
+          && (360 - hue.largestGap) >= CLUSTER_CONFIG.ringHueCoverage
+          && hue.continuity >= CLUSTER_CONFIG.ringContinuityRatio
+          && relativeChromaSpread <= CLUSTER_CONFIG.ringChromaRelativeSpread;
+        const count = rawMemberCount(members);
+        const lcSpread = Math.hypot((L90 - L10) / 30, (C90 - C10) / 35);
+        const confidence = count <= 5
+          ? '低'
+          : (count >= 12 && lcSpread < 1.25 && (type === 'tone-limited' || hue.concentration >= .68) ? '高' : '中');
+        const memberIds = members.flatMap(item => item.memberIds);
+        const sourceColors = members.flatMap(item => item.sourceColors);
+        const centroidWeight = members.reduce((sum, item) => sum + item.weight, 0);
+        const centroid = {
+          L: members.reduce((sum, item) => sum + item.L * item.weight, 0) / centroidWeight,
+          a: members.reduce((sum, item) => sum + item.a * item.weight, 0) / centroidWeight,
+          b: members.reduce((sum, item) => sum + item.b * item.weight, 0) / centroidWeight
+        };
+        centroid.C = Math.hypot(centroid.a, centroid.b);
+        centroid.h = normalizeHue(Math.atan2(centroid.b, centroid.a) * 180 / Math.PI);
+        return {
+          id: `cluster-${index + 1}`,
+          index,
+          color: CLUSTER_COLORS[index % CLUSTER_COLORS.length],
+          type,
+          typeLabel: ring ? '色调限定型 · 环状' : type === 'hue-limited' ? '色相限定型' : '色调限定型',
+          ring,
+          confidence,
+          count,
+          effectiveCount: members.length,
+          memberIds,
+          members,
+          sourceColors,
+          centroid,
+          ranges: { L10, L50, L90, C10, C50, C90 },
+          hue,
+          smoothingLevel: 'raw'
+        };
+      }
+
+      function analyzeColorClusters(colors, tagLabel = '') {
+        const samples = preprocessClusterSamples(colors);
+        const result = { rawCount: colors.length, effectiveCount: samples.length, clusters: [] };
+        if (samples.length < CLUSTER_CONFIG.minSamples) return result;
+        const maximumClusters = clusterLimitForSampleCount(colors.length);
+        const tones = clusterToneRegions(samples, maximumClusters);
+        let groups = tones.flatMap(splitToneRegionByHue);
+        groups = compactClusterGroups(groups, maximumClusters);
+        const stableGroups = groups.filter(group => rawMemberCount(group.members) >= CLUSTER_CONFIG.minSamples);
+        if (stableGroups.length) groups = stableGroups;
+        groups.sort((first, second) => first.L - second.L || first.C - second.C || second.weight - first.weight);
+        result.clusters = groups.map((group, index) => buildClusterModel(group, index, tagLabel));
+        return result;
+      }
+
+      function recommendationBoundsForCluster(cluster) {
+        const { L10, L90, C10, C90 } = cluster.ranges;
+        const scale = cluster.confidence === '低'
+          ? CLUSTER_CONFIG.recommendationLowConfidenceScale
+          : cluster.confidence === '中'
+            ? CLUSTER_CONFIG.recommendationMediumConfidenceScale
+            : 1;
+        const paddingL = CLUSTER_CONFIG.recommendationPaddingL * scale;
+        const paddingC = CLUSTER_CONFIG.recommendationPaddingC * scale;
+        const baseHuePadding = CLUSTER_CONFIG.recommendationPaddingHue * scale;
+        const paddingHue = clusterToneCompactness(cluster).compact
+          ? Math.max(baseHuePadding, CLUSTER_CONFIG.recommendationCompactHuePadding)
+          : (cluster.type === 'hue-limited' && cluster.hue.chromaticWeight > 0
+            ? Math.max(baseHuePadding, CLUSTER_CONFIG.recommendationHuePaddingFloor)
+            : baseHuePadding);
+        return {
+          LMin: clampNumber(L10 - paddingL, 0, 100),
+          LMax: clampNumber(L90 + paddingL, 0, 100),
+          CMin: Math.max(0, C10 - paddingC),
+          CMax: Math.max(C10, C90 + paddingC),
+          hStart: cluster.type === 'hue-limited' ? cluster.hue.arcStart - paddingHue : 0,
+          hEnd: cluster.type === 'hue-limited' ? cluster.hue.arcEnd + paddingHue : 360,
+          paddingL,
+          paddingC,
+          paddingHue
+        };
+      }
+
+      function deterministicRangeValues(minimum, maximum, count) {
+        if (count <= 1 || maximum - minimum < 1e-8) return [(minimum + maximum) / 2];
+        return Array.from({ length: count }, (_, index) => minimum + (maximum - minimum) * index / (count - 1));
+      }
+
+      function labFromLch(L, C, h) {
+        const radians = normalizeHue(h) * Math.PI / 180;
+        return { L, C, h: normalizeHue(h), a: C * Math.cos(radians), b: C * Math.sin(radians) };
+      }
+
+      function displayableLch(L, C, h) {
+        if (L < 0 || L > 100 || C < 0) return null;
+        const lab = labFromLch(L, C, h);
+        const preview = labToDisplayColor(lab.L, lab.a, lab.b);
+        return preview.outOfGamut ? null : { ...lab, ...preview };
+      }
+
+      function recommendationReason(cluster, candidate) {
+        const lightness = candidate.L >= 64 ? '高明度' : candidate.L >= 36 ? '中明度' : '低明度';
+        const chroma = candidate.C < 5 ? '近无彩' : candidate.C < 22 ? '低彩度' : candidate.C < 48 ? '中彩度' : '高彩度';
+        if (clusterToneCompactness(cluster).compact) return `保持聚落集中的明度与彩度关系，通过新的色相位置补充当前空缺。`;
+        if (cluster.type === 'hue-limited') return `延续聚落的主要色相，并优先填补${lightness}、${chroma}范围内的空缺。`;
+        return `保持聚落的${lightness}与${chroma}关系，优先补充聚落内部较少的色相位置。`;
+      }
+
+      function recommendationTargetCount(cluster) {
+        if (cluster.count <= 8) return 2;
+        if (cluster.count <= 14) return 3;
+        return CLUSTER_CONFIG.maxRecommendationsPerCluster;
+      }
+
+      function clusterToneCompactness(cluster) {
+        const lightnessSpread = Math.max(0, cluster.ranges.L90 - cluster.ranges.L10);
+        const chromaSpread = Math.max(0, cluster.ranges.C90 - cluster.ranges.C10);
+        const chromaticMembers = cluster.members.filter(member => member.C >= CLUSTER_CONFIG.lowChromaThreshold);
+        const hueCoverage = Math.max(cluster.hue.coverage, 360 - cluster.hue.largestGap);
+        const compact = chromaticMembers.length >= 2
+          && lightnessSpread <= CLUSTER_CONFIG.recommendationCompactLightnessSpread
+          && chromaSpread <= CLUSTER_CONFIG.recommendationCompactChromaSpread
+          && hueCoverage >= CLUSTER_CONFIG.recommendationCompactHueCoverage;
+        return { compact, lightnessSpread, chromaSpread, hueCoverage };
+      }
+
+      function generateClusterCandidates(cluster, expanded = false) {
+        const baseBounds = recommendationBoundsForCluster(cluster);
+        const bounds = expanded ? {
+          ...baseBounds,
+          LMin: clampNumber(baseBounds.LMin - CLUSTER_CONFIG.recommendationFallbackExpansionL, 0, 100),
+          LMax: clampNumber(baseBounds.LMax + CLUSTER_CONFIG.recommendationFallbackExpansionL, 0, 100),
+          CMin: Math.max(0, baseBounds.CMin - CLUSTER_CONFIG.recommendationFallbackExpansionC),
+          CMax: baseBounds.CMax + CLUSTER_CONFIG.recommendationFallbackExpansionC,
+          hStart: baseBounds.hStart - CLUSTER_CONFIG.recommendationFallbackExpansionHue,
+          hEnd: baseBounds.hEnd + CLUSTER_CONFIG.recommendationFallbackExpansionHue
+        } : baseBounds;
+        const tone = clusterToneCompactness(cluster);
+        const compactExpansion = expanded ? 2.1 : 1;
+        const compactLHalfRange = Math.max(2.5, tone.lightnessSpread * .42) * compactExpansion;
+        const compactCHalfRange = Math.max(3, tone.chromaSpread * .45) * compactExpansion;
+        const LMin = tone.compact ? Math.max(bounds.LMin, cluster.ranges.L50 - compactLHalfRange) : bounds.LMin;
+        const LMax = tone.compact ? Math.min(bounds.LMax, cluster.ranges.L50 + compactLHalfRange) : bounds.LMax;
+        const CMin = tone.compact ? Math.max(bounds.CMin, cluster.ranges.C50 - compactCHalfRange) : bounds.CMin;
+        const CMax = tone.compact ? Math.min(bounds.CMax, cluster.ranges.C50 + compactCHalfRange) : bounds.CMax;
+        const LValues = deterministicRangeValues(LMin, LMax, 7);
+        const CValues = deterministicRangeValues(CMin, CMax, 7);
+        const hueSpan = bounds.hEnd - bounds.hStart;
+        const hueCount = cluster.type === 'hue-limited'
+          ? Math.max(11, Math.ceil(hueSpan / (tone.compact ? 6 : 11)) + 1)
+          : (tone.compact ? 48 : 24);
+        const hValues = deterministicRangeValues(bounds.hStart, bounds.hEnd, hueCount + (cluster.type === 'tone-limited' ? 0 : 1));
+        const candidates = new Map();
+        LValues.forEach(L => CValues.forEach(C => hValues.forEach(h => {
+          const candidate = displayableLch(L, C, h);
+          if (!candidate) return;
+          const key = candidate.hex;
+          if (!candidates.has(key)) candidates.set(key, candidate);
+        })));
+        return [...candidates.values()].sort((first, second) => first.L - second.L || first.C - second.C || first.h - second.h);
+      }
+
+      function rangeOutsideRatio(value, minimum, maximum, scale) {
+        if (value < minimum) return (minimum - value) / Math.max(scale, 1e-6);
+        if (value > maximum) return (value - maximum) / Math.max(scale, 1e-6);
+        return 0;
+      }
+
+      function unwrapHueForArc(hue, start, end) {
+        const center = (start + end) / 2;
+        const normalized = normalizeHue(hue);
+        return normalized + Math.round((center - normalized) / 360) * 360;
+      }
+
+      function recommendationCoreDistance(cluster, candidate) {
+        const { L10, L90, C10, C90 } = cluster.ranges;
+        const lightnessDistance = rangeOutsideRatio(candidate.L, L10, L90, Math.max(5, L90 - L10));
+        const chromaDistance = rangeOutsideRatio(candidate.C, C10, C90, Math.max(5, C90 - C10));
+        if (cluster.type !== 'hue-limited' || candidate.C < CLUSTER_CONFIG.lowChromaThreshold) {
+          return lightnessDistance + chromaDistance;
+        }
+        const unwrappedHue = unwrapHueForArc(candidate.h, cluster.hue.arcStart, cluster.hue.arcEnd);
+        const hueDistance = rangeOutsideRatio(
+          unwrappedHue,
+          cluster.hue.arcStart,
+          cluster.hue.arcEnd,
+          Math.max(12, cluster.hue.coverage * .3)
+        );
+        return lightnessDistance + chromaDistance + hueDistance;
+      }
+
+      function recommendationMaximumNearestDeltaE(cluster) {
+        const confidenceScale = cluster.confidence === '低' ? .72 : cluster.confidence === '中' ? .88 : 1;
+        const broadHueAllowance = cluster.type === 'tone-limited' ? (cluster.ring ? 4 : 2) : 0;
+        const compactHueAllowance = clusterToneCompactness(cluster).compact
+          ? CLUSTER_CONFIG.recommendationCompactHueAllowance
+          : 0;
+        return CLUSTER_CONFIG.recommendationMaxNearestDeltaE * confidenceScale + broadHueAllowance + compactHueAllowance;
+      }
+
+      function clusterCentroidRadius(cluster) {
+        return weightedQuantile(cluster.members, member => deltaE2000(member, cluster.centroid), .9);
+      }
+
+      function minimumHueDistance(hue, colors) {
+        const chromatic = colors.filter(color => color.C >= CLUSTER_CONFIG.lowChromaThreshold);
+        if (!chromatic.length) return 180;
+        return Math.min(...chromatic.map(color => hueAngleDistance(hue, color.h)));
+      }
+
+      function recommendationHueSeparation(cluster) {
+        const tone = clusterToneCompactness(cluster);
+        const desired = tone.compact
+          ? CLUSTER_CONFIG.recommendationCompactMinHueSeparation
+          : CLUSTER_CONFIG.recommendationMinHueSeparation;
+        const availableSpan = cluster.type === 'hue-limited'
+          ? Math.max(12, recommendationBoundsForCluster(cluster).hEnd - recommendationBoundsForCluster(cluster).hStart)
+          : 360;
+        return Math.min(desired, availableSpan / 2.6);
+      }
+
+      function generateRecommendations(clusters, existingColors, tagLabel) {
+        const existingLabs = existingColors.map(colorLabSample);
+        const selected = [];
+        clusters.forEach(cluster => {
+          const tone = clusterToneCompactness(cluster);
+          let candidates = generateClusterCandidates(cluster).map(candidate => ({
+            ...candidate,
+            clusterId: cluster.id,
+            clusterIndex: cluster.index,
+            tagLabel,
+            reason: recommendationReason(cluster, candidate)
+          }));
+          const targetCount = recommendationTargetCount(cluster);
+          const maximumNearestDeltaE = recommendationMaximumNearestDeltaE(cluster);
+          const centroidRadius = clusterCentroidRadius(cluster);
+          const minimumHueSeparation = recommendationHueSeparation(cluster);
+          for (let slot = 0; slot < targetCount; slot += 1) {
+            let best = null;
+            const evaluateCandidates = (
+              separationScale = 1,
+              distanceAllowance = 0,
+              minimumRequiredDeltaE = CLUSTER_CONFIG.recommendationMinDeltaE
+            ) => candidates.forEach(candidate => {
+              const sameClusterRecommendations = selected.filter(item => item.clusterId === cluster.id);
+              if (candidate.C >= CLUSTER_CONFIG.lowChromaThreshold && sameClusterRecommendations.some(item =>
+                item.C >= CLUSTER_CONFIG.lowChromaThreshold
+                && hueAngleDistance(candidate.h, item.h) + 1e-9 < minimumHueSeparation * separationScale)) return;
+              const comparison = [...existingLabs, ...selected];
+              const minimumDistance = comparison.length
+                ? Math.min(...comparison.map(other => deltaE2000(candidate, other)))
+                : Infinity;
+              if (minimumDistance + 1e-9 < minimumRequiredDeltaE) return;
+              const nearestClusterDistance = Math.min(...cluster.members.map(member => deltaE2000(candidate, member)));
+              if (nearestClusterDistance > maximumNearestDeltaE + distanceAllowance + 1e-9) return;
+              const centerDistance = deltaE2000(candidate, cluster.centroid);
+              const coreDistance = recommendationCoreDistance(cluster, candidate);
+              const centerOverflow = cluster.type === 'hue-limited'
+                ? Math.max(0, centerDistance - Math.max(centroidRadius + 2.5, 7))
+                : 0;
+              const idealDeltaE = CLUSTER_CONFIG.recommendationIdealDeltaE;
+              const noveltyScore = Math.min(minimumDistance, idealDeltaE);
+              const internalGapScore = Math.min(nearestClusterDistance, idealDeltaE) * .22;
+              const excessDeltaE = Math.max(0, minimumDistance - idealDeltaE);
+              const sampleHueGap = candidate.C >= CLUSTER_CONFIG.lowChromaThreshold
+                ? minimumHueDistance(candidate.h, cluster.members)
+                : 0;
+              const compactToneDistance = tone.compact
+                ? Math.hypot(
+                  (candidate.L - cluster.ranges.L50) / Math.max(3, tone.lightnessSpread * .5),
+                  (candidate.C - cluster.ranges.C50) / Math.max(3.5, tone.chromaSpread * .5)
+                )
+                : 0;
+              const score = noveltyScore + internalGapScore
+                + Math.min(sampleHueGap, 90) * (tone.compact ? CLUSTER_CONFIG.recommendationHueGapReward : .012)
+                - excessDeltaE * CLUSTER_CONFIG.recommendationExcessDeltaEPenalty
+                - coreDistance * CLUSTER_CONFIG.recommendationCorePenalty
+                - compactToneDistance * CLUSTER_CONFIG.recommendationCompactTonePenalty
+                - centerOverflow * CLUSTER_CONFIG.recommendationCenterPenalty;
+              if (!best || score > best.score + 1e-9
+                || (Math.abs(score - best.score) < 1e-9 && `${candidate.hex}:${candidate.L}:${candidate.C}:${candidate.h}` < best.tie)) {
+                best = {
+                  candidate,
+                  score,
+                  minimumDistance,
+                  nearestClusterDistance,
+                  tie: `${candidate.hex}:${candidate.L}:${candidate.C}:${candidate.h}`
+                };
+              }
+            });
+            evaluateCandidates();
+            if (!best && slot < 2) evaluateCandidates(.72, 2);
+            if (!best && slot < 2) {
+              const knownHex = new Set([...candidates, ...selected].map(item => item.hex));
+              const expandedCandidates = generateClusterCandidates(cluster, true)
+                .filter(candidate => !knownHex.has(candidate.hex))
+                .map(candidate => ({
+                  ...candidate,
+                  clusterId: cluster.id,
+                  clusterIndex: cluster.index,
+                  tagLabel,
+                  reason: recommendationReason(cluster, candidate)
+                }));
+              candidates.push(...expandedCandidates);
+              evaluateCandidates(.55, 4, CLUSTER_CONFIG.recommendationFallbackMinDeltaE);
+            }
+            if (!best) break;
+            selected.push({
+              ...best.candidate,
+              id: `recommendation-${cluster.id}-${slot + 1}-${best.candidate.hex.slice(1)}`,
+              minimumDeltaE: best.minimumDistance,
+              nearestClusterDeltaE: best.nearestClusterDistance
+            });
+            candidates = candidates.filter(candidate => candidate.hex !== best.candidate.hex);
+          }
+        });
+        return selected;
+      }
+      // CLUSTER_ENGINE_END
 
       function clusterColorMetrics(cluster) {
         return {
@@ -3008,6 +3798,857 @@
         return node;
       }
 
+      function clusterAnalysisColors() {
+        if (!state.activeTagId) return [];
+        return state.library.filter(color => color.visible && colorMatchesActiveTag(color));
+      }
+
+      function clusterAnalysisFingerprint(colors = clusterAnalysisColors()) {
+        if (!state.activeTagId) return 'no-analysis-tag';
+        const values = colors
+          .map(color => `${color.id}:${Number(color.L).toFixed(5)}:${Number(color.C).toFixed(5)}:${normalizeHue(color.h).toFixed(5)}`)
+          .sort();
+        const libraryContext = state.library
+          .map(color => `${color.id}:${color.visible ? 1 : 0}:${color.hex}:${normalizeTags(color.tags).map(tagKey).sort().join(',')}`)
+          .sort();
+        return `${state.activeTagId}|${values.join('|')}|library:${libraryContext.join('|')}`;
+      }
+
+      function resetClusterRecommendations() {
+        clusterState.recommendations = [];
+        clusterState.recommendationFingerprint = '';
+        clusterState.showRecommendationRange = false;
+        clusterState.selectedRecommendationId = null;
+      }
+
+      function clearClusterAnalysis() {
+        clusterState.fingerprint = state.activeTagId ? `${state.activeTagId}|` : 'no-analysis-tag';
+        clusterState.analysisTagId = state.activeTagId;
+        clusterState.analysisTagLabel = state.activeTagLabel;
+        clusterState.sampleCount = 0;
+        clusterState.effectiveCount = 0;
+        clusterState.clusters = [];
+        clusterState.colorClusterIds = new Map();
+        clusterState.focusedClusterId = null;
+        clusterState.hoveredClusterId = null;
+        resetClusterRecommendations();
+      }
+
+      function ensureClusterAnalysis() {
+        const colors = clusterAnalysisColors();
+        const fingerprint = clusterAnalysisFingerprint(colors);
+        if (fingerprint === clusterState.fingerprint) return false;
+        clusterState.fingerprint = fingerprint;
+        clusterState.analysisTagId = state.activeTagId;
+        clusterState.analysisTagLabel = state.activeTagLabel;
+        clusterState.sampleCount = colors.length;
+        clusterState.focusedClusterId = null;
+        clusterState.hoveredClusterId = null;
+        resetClusterRecommendations();
+        if (!state.activeTagId) {
+          clearClusterAnalysis();
+          return true;
+        }
+        const analysis = analyzeColorClusters(colors, state.activeTagLabel || '');
+        clusterState.effectiveCount = analysis.effectiveCount;
+        clusterState.clusters = analysis.clusters;
+        clusterState.colorClusterIds = new Map();
+        analysis.clusters.forEach(cluster => {
+          cluster.memberIds.forEach(id => clusterState.colorClusterIds.set(String(id), cluster.id));
+        });
+        return true;
+      }
+
+      function activeClusterFocusId() {
+        return clusterState.hoveredClusterId || clusterState.focusedClusterId;
+      }
+
+      function applyClusterFocusStyles() {
+        const activeId = activeClusterFocusId();
+        document.querySelectorAll('[data-cluster-id]').forEach(element => {
+          const matches = !activeId || element.dataset.clusterId === activeId;
+          const isShapeOrCard = element.classList.contains('cluster-shape')
+            || element.classList.contains('cluster-summary')
+            || element.classList.contains('recommendation-card');
+          const isPoint = element.classList.contains('cluster-member') || element.classList.contains('recommended-point');
+          if (isShapeOrCard) {
+            element.classList.toggle('is-active', Boolean(activeId && matches));
+            element.classList.toggle('is-muted', Boolean(activeId && !matches));
+          }
+          if (isPoint) {
+            element.classList.toggle('is-cluster-active', Boolean(activeId && matches));
+            element.classList.toggle('is-cluster-muted', Boolean(activeId && !matches));
+          }
+        });
+      }
+
+      function attachClusterInteraction(element, cluster) {
+        element.dataset.clusterId = cluster.id;
+        element.style.setProperty('--cluster-color', cluster.color);
+        const tooltipText = `${cluster.id.replace('cluster-', '聚落 ')} · ${cluster.typeLabel}<br>${cluster.count} 个样本 · ${cluster.confidence}置信度`;
+        element.addEventListener('pointerenter', event => {
+          clusterState.hoveredClusterId = cluster.id;
+          applyClusterFocusStyles();
+          showTooltip(event, tooltipText);
+        });
+        element.addEventListener('pointermove', moveTooltip);
+        element.addEventListener('pointerleave', () => {
+          clusterState.hoveredClusterId = null;
+          applyClusterFocusStyles();
+          hideTooltip();
+        });
+        element.addEventListener('click', event => {
+          event.stopPropagation();
+          clusterState.focusedClusterId = clusterState.focusedClusterId === cluster.id ? null : cluster.id;
+          applyClusterFocusStyles();
+        });
+        element.addEventListener('focus', event => {
+          clusterState.hoveredClusterId = cluster.id;
+          applyClusterFocusStyles();
+          showTooltip(event, tooltipText);
+        });
+        element.addEventListener('blur', () => {
+          clusterState.hoveredClusterId = null;
+          applyClusterFocusStyles();
+          hideTooltip();
+        });
+      }
+
+      function clusterRangeText(cluster) {
+        const { L10, L90, C10, C90 } = cluster.ranges;
+        const hueText = cluster.ring
+          ? 'h 广泛连续'
+          : `h ${format(normalizeHue(cluster.hue.arcStart))}–${format(normalizeHue(cluster.hue.arcEnd))}°`;
+        return `L ${format(L10)}–${format(L90)} · C ${format(C10)}–${format(C90)} · ${hueText}`;
+      }
+
+      function renderClusterPanel() {
+        ensureClusterAnalysis();
+        els.clusterTagName.textContent = state.activeTagLabel || '未选择';
+        els.clusterSampleCount.textContent = String(clusterState.sampleCount);
+        els.clusterEffectiveCount.textContent = String(clusterState.effectiveCount);
+        els.clusterCount.textContent = String(clusterState.clusters.length);
+        els.clusterSummaries.replaceChildren();
+        els.recommendationGrid.replaceChildren();
+
+        if (!state.activeTagId) {
+          els.clusterNotice.textContent = '选择一个具体 Tag 后，将自动识别当前数据中的主要聚落。';
+          els.clusterNotice.classList.remove('is-warning');
+          els.exploreRecommendations.disabled = true;
+          els.recommendationSection.hidden = true;
+          return;
+        }
+        if (clusterState.effectiveCount < CLUSTER_CONFIG.minSamples) {
+          els.clusterNotice.textContent = '样本不足，无法形成稳定聚落。请至少开启 3 个彼此可区分的颜色。';
+          els.clusterNotice.classList.add('is-warning');
+          els.exploreRecommendations.disabled = true;
+          els.recommendationSection.hidden = true;
+          return;
+        }
+
+        const lowConfidence = clusterState.clusters.some(cluster => cluster.confidence === '低');
+        els.clusterNotice.textContent = lowConfidence
+          ? '已基于当前样本推导聚落；样本较少，结果仅供参考。实线为实际聚落，探索后出现的虚线为潜在推荐区域。'
+          : '已基于当前样本推导聚落。实线为实际聚落，探索后出现的虚线为潜在推荐区域。';
+        els.clusterNotice.classList.toggle('is-warning', lowConfidence);
+        els.exploreRecommendations.disabled = !clusterState.clusters.length;
+        els.exploreRecommendations.textContent = clusterState.recommendations.length ? '已生成推荐色' : '探索推荐色';
+
+        clusterState.clusters.forEach(cluster => {
+          const card = document.createElement('article');
+          card.className = 'cluster-summary';
+          card.tabIndex = 0;
+          card.innerHTML = `
+            <div class="cluster-summary-top">
+              <span class="cluster-summary-name"><span class="cluster-summary-dot"></span>聚落 ${cluster.index + 1}</span>
+              <span class="cluster-confidence">${cluster.confidence}置信度 · ${cluster.count} 色</span>
+            </div>
+            <p class="cluster-summary-type">${cluster.typeLabel}</p>
+            <p class="cluster-summary-range">${clusterRangeText(cluster)}</p>`;
+          attachClusterInteraction(card, cluster);
+          els.clusterSummaries.appendChild(card);
+        });
+
+        els.recommendationSection.hidden = !clusterState.recommendations.length;
+        if (clusterState.recommendations.length) renderRecommendationCards();
+        applyClusterFocusStyles();
+      }
+
+      function recommendationLabLabel(recommendation) {
+        return `Lab (${formatInput(recommendation.L)}, ${formatInput(recommendation.a)}, ${formatInput(recommendation.b)})`;
+      }
+
+      function renderRecommendationCards() {
+        els.recommendationGrid.replaceChildren();
+        els.recommendationNote.textContent = `${clusterState.recommendations.length} 个潜在推荐色 · 正式添加前不进入色库与统计`;
+        clusterState.recommendations.forEach(recommendation => {
+          const cluster = clusterState.clusters.find(item => item.id === recommendation.clusterId);
+          if (!cluster) return;
+          const exists = state.library.some(item => item.hex === recommendation.hex || displayLchKey(item) === displayLchKey(recommendation));
+          const card = document.createElement('article');
+          card.className = `recommendation-card${clusterState.selectedRecommendationId === recommendation.id ? ' is-active' : ''}`;
+          card.style.setProperty('--cluster-color', cluster.color);
+          card.dataset.clusterId = cluster.id;
+          card.dataset.recommendationId = recommendation.id;
+          card.innerHTML = `
+            <div class="recommendation-swatch" style="--swatch:${recommendation.hex}"></div>
+            <div class="recommendation-meta">
+              <p class="recommendation-hex">${recommendation.hex}</p>
+              <p class="recommendation-line">${recommendationLabLabel(recommendation)}</p>
+              <p class="recommendation-line">${pointLabel(recommendation)}</p>
+              <p class="recommendation-line">Tag · ${recommendation.tagLabel} · 聚落 ${cluster.index + 1}</p>
+              <p class="recommendation-reason">${recommendation.reason}</p>
+              <button class="recommendation-add" type="button" ${exists ? 'disabled' : ''}>${exists ? '已在色库' : '添加到色库'}</button>
+            </div>`;
+          card.addEventListener('pointerenter', () => {
+            clusterState.hoveredClusterId = cluster.id;
+            clusterState.selectedRecommendationId = recommendation.id;
+            applyClusterFocusStyles();
+          });
+          card.addEventListener('pointerleave', () => {
+            clusterState.hoveredClusterId = null;
+            applyClusterFocusStyles();
+          });
+          card.addEventListener('click', () => {
+            clusterState.selectedRecommendationId = recommendation.id;
+            clusterState.focusedClusterId = clusterState.focusedClusterId === cluster.id ? null : cluster.id;
+            applyClusterFocusStyles();
+          });
+          card.querySelector('.recommendation-add').addEventListener('click', event => {
+            event.stopPropagation();
+            addRecommendationToLibrary(recommendation, event.currentTarget);
+          });
+          els.recommendationGrid.appendChild(card);
+        });
+      }
+
+      function addRecommendationToLibrary(recommendation, returnFocus) {
+        if (state.library.some(item => item.hex === recommendation.hex || displayLchKey(item) === displayLchKey(recommendation))) return;
+        openTagDialog({
+          title: '添加潜在推荐色',
+          subtitle: `${recommendation.hex} · 已默认勾选当前分析 Tag，可在添加前修改。`,
+          initialTags: recommendation.tagLabel ? [recommendation.tagLabel] : [],
+          returnFocus,
+          onConfirm: tags => {
+            if (state.library.some(item => item.hex === recommendation.hex || displayLchKey(item) === displayLchKey(recommendation))) return;
+            state.library.unshift({
+              id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+              visible: true,
+              sourceType: 'lch',
+              sourceValue: `(${formatInput(recommendation.L)}, ${formatInput(recommendation.C)}, ${formatInput(recommendation.h)})`,
+              key: `recommendation:${recommendation.hex}:${Date.now()}`,
+              hex: recommendation.hex,
+              rgb: [...recommendation.rgb],
+              L: recommendation.L,
+              C: recommendation.C,
+              h: recommendation.h,
+              outOfGamut: false,
+              tags
+            });
+            saveLibrary();
+            renderLibrary();
+            renderCharts();
+            updateResult();
+          }
+        });
+      }
+
+      function exploreClusterRecommendations() {
+        ensureClusterAnalysis();
+        if (!clusterState.clusters.length || !state.activeTagId) return;
+        const cacheKey = clusterState.fingerprint;
+        let recommendations = clusterState.recommendationCache.get(cacheKey);
+        if (!recommendations) {
+          recommendations = generateRecommendations(clusterState.clusters, state.library, state.activeTagLabel || '');
+          clusterState.recommendationCache.set(cacheKey, recommendations.map(item => ({ ...item, rgb: [...item.rgb] })));
+        }
+        clusterState.recommendations = recommendations.map(item => ({ ...item, rgb: [...item.rgb] }));
+        clusterState.recommendationFingerprint = cacheKey;
+        clusterState.showRecommendationRange = true;
+        clusterState.selectedRecommendationId = clusterState.recommendations[0] ? clusterState.recommendations[0].id : null;
+        renderClusterPanel();
+        renderCharts();
+        if (!clusterState.recommendations.length) {
+          els.clusterNotice.textContent = '当前高可信区域内没有与现有颜色保持足够色差的可显示推荐色，结果宁缺毋滥。';
+          els.clusterNotice.classList.add('is-warning');
+        }
+      }
+
+      function pointDistance(first, second) {
+        return Math.hypot(first.x - second.x, first.y - second.y);
+      }
+
+      function sampleClosedPolyline(points, count) {
+        if (points.length < 2) return [...points];
+        const segments = points.map((point, index) => ({
+          start: point,
+          end: points[(index + 1) % points.length],
+          length: pointDistance(point, points[(index + 1) % points.length])
+        }));
+        const perimeter = segments.reduce((sum, segment) => sum + segment.length, 0);
+        if (perimeter < 1e-8) return Array.from({ length: count }, () => ({ ...points[0] }));
+        const result = [];
+        let segmentIndex = 0;
+        let traversed = 0;
+        for (let index = 0; index < count; index += 1) {
+          const target = perimeter * index / count;
+          while (segmentIndex < segments.length - 1 && traversed + segments[segmentIndex].length < target) {
+            traversed += segments[segmentIndex].length;
+            segmentIndex += 1;
+          }
+          const segment = segments[segmentIndex];
+          const ratio = segment.length < 1e-8 ? 0 : (target - traversed) / segment.length;
+          result.push({
+            x: segment.start.x + (segment.end.x - segment.start.x) * ratio,
+            y: segment.start.y + (segment.end.y - segment.start.y) * ratio
+          });
+        }
+        return result;
+      }
+
+      function evaluatePeriodicUniformSpline(controlPoints, degree, sampleCount) {
+        const count = controlPoints.length;
+        if (count < degree + 1) return null;
+        const extended = [
+          ...controlPoints.slice(count - degree),
+          ...controlPoints,
+          ...controlPoints.slice(0, degree)
+        ];
+        const result = [];
+        for (let sampleIndex = 0; sampleIndex < sampleCount; sampleIndex += 1) {
+          const parameter = degree + count * sampleIndex / sampleCount;
+          const span = Math.floor(parameter);
+          const local = [];
+          for (let index = 0; index <= degree; index += 1) {
+            local.push({ ...extended[span - degree + index] });
+          }
+          for (let level = 1; level <= degree; level += 1) {
+            for (let index = degree; index >= level; index -= 1) {
+              const denominator = degree - level + 1;
+              const alpha = denominator ? (parameter - (span - degree + index)) / denominator : 0;
+              local[index] = {
+                x: (1 - alpha) * local[index - 1].x + alpha * local[index].x,
+                y: (1 - alpha) * local[index - 1].y + alpha * local[index].y
+              };
+            }
+          }
+          result.push(local[degree]);
+        }
+        return result;
+      }
+
+      function polygonArea(points) {
+        if (points.length < 3) return 0;
+        return Math.abs(points.reduce((sum, point, index) => {
+          const next = points[(index + 1) % points.length];
+          return sum + point.x * next.y - next.x * point.y;
+        }, 0)) / 2;
+      }
+
+      function orientation(first, second, third) {
+        return (second.y - first.y) * (third.x - second.x) - (second.x - first.x) * (third.y - second.y);
+      }
+
+      function segmentsIntersect(firstA, firstB, secondA, secondB) {
+        const o1 = orientation(firstA, firstB, secondA);
+        const o2 = orientation(firstA, firstB, secondB);
+        const o3 = orientation(secondA, secondB, firstA);
+        const o4 = orientation(secondA, secondB, firstB);
+        return o1 * o2 < -1e-7 && o3 * o4 < -1e-7;
+      }
+
+      function contourSelfIntersects(points) {
+        for (let first = 0; first < points.length; first += 1) {
+          const firstNext = (first + 1) % points.length;
+          for (let second = first + 2; second < points.length; second += 1) {
+            const secondNext = (second + 1) % points.length;
+            if (first === secondNext || firstNext === second) continue;
+            if (segmentsIntersect(points[first], points[firstNext], points[second], points[secondNext])) return true;
+          }
+        }
+        return false;
+      }
+
+      function pointToSegmentDistance(point, start, end) {
+        const dx = end.x - start.x;
+        const dy = end.y - start.y;
+        const lengthSquared = dx * dx + dy * dy;
+        const t = lengthSquared ? clampNumber(((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSquared, 0, 1) : 0;
+        return Math.hypot(point.x - (start.x + dx * t), point.y - (start.y + dy * t));
+      }
+
+      function distanceToContour(point, contour) {
+        let distance = Infinity;
+        contour.forEach((start, index) => {
+          distance = Math.min(distance, pointToSegmentDistance(point, start, contour[(index + 1) % contour.length]));
+        });
+        return distance;
+      }
+
+      function segmentDistance(firstA, firstB, secondA, secondB) {
+        if (segmentsIntersect(firstA, firstB, secondA, secondB)) return 0;
+        return Math.min(
+          pointToSegmentDistance(firstA, secondA, secondB),
+          pointToSegmentDistance(firstB, secondA, secondB),
+          pointToSegmentDistance(secondA, firstA, firstB),
+          pointToSegmentDistance(secondB, firstA, firstB)
+        );
+      }
+
+      function contourMinimumNonAdjacentClearance(points) {
+        let minimum = Infinity;
+        const count = points.length;
+        for (let first = 0; first < count; first += 1) {
+          const firstNext = (first + 1) % count;
+          for (let second = first + 1; second < count; second += 1) {
+            const cyclicDistance = Math.min(Math.abs(first - second), count - Math.abs(first - second));
+            if (cyclicDistance <= 3) continue;
+            const secondNext = (second + 1) % count;
+            if (first === secondNext || firstNext === second) continue;
+            minimum = Math.min(minimum, segmentDistance(points[first], points[firstNext], points[second], points[secondNext]));
+          }
+        }
+        return minimum;
+      }
+
+      function contourTurningMetrics(points) {
+        let signed = 0;
+        let absolute = 0;
+        let maximum = 0;
+        for (let index = 0; index < points.length; index += 1) {
+          const previous = points[(index - 1 + points.length) % points.length];
+          const current = points[index];
+          const next = points[(index + 1) % points.length];
+          const incoming = { x: current.x - previous.x, y: current.y - previous.y };
+          const outgoing = { x: next.x - current.x, y: next.y - current.y };
+          const incomingLength = Math.hypot(incoming.x, incoming.y);
+          const outgoingLength = Math.hypot(outgoing.x, outgoing.y);
+          if (incomingLength < 1e-6 || outgoingLength < 1e-6) continue;
+          const cross = incoming.x * outgoing.y - incoming.y * outgoing.x;
+          const dot = incoming.x * outgoing.x + incoming.y * outgoing.y;
+          const turn = Math.atan2(cross, dot);
+          signed += turn;
+          absolute += Math.abs(turn);
+          maximum = Math.max(maximum, Math.abs(turn));
+        }
+        return { signed, absolute, maximum };
+      }
+
+      function chaikinClosed(points, iterations = 2) {
+        let result = points.map(point => ({ ...point }));
+        for (let iteration = 0; iteration < iterations; iteration += 1) {
+          const next = [];
+          result.forEach((point, index) => {
+            const following = result[(index + 1) % result.length];
+            next.push({ x: point.x * .75 + following.x * .25, y: point.y * .75 + following.y * .25 });
+            next.push({ x: point.x * .25 + following.x * .75, y: point.y * .25 + following.y * .75 });
+          });
+          result = next;
+        }
+        return result;
+      }
+
+      function validateSmoothedContour(raw, candidate, bounds, settings) {
+        if (!candidate || candidate.length < 8 || contourSelfIntersects(candidate)) return false;
+        if (candidate.some(point => point.x < bounds.left || point.x > bounds.right || point.y < bounds.top || point.y > bounds.bottom)) return false;
+        const turning = contourTurningMetrics(candidate);
+        if (Math.abs(Math.abs(turning.signed) - Math.PI * 2) > Math.PI * .58) return false;
+        if (turning.absolute > settings.maxAbsoluteTurning || turning.maximum > settings.maxLocalTurn) return false;
+        if (contourMinimumNonAdjacentClearance(candidate) < CLUSTER_CONFIG.contourMinimumClearance) return false;
+        const rawArea = polygonArea(raw);
+        const candidateArea = polygonArea(candidate);
+        if (rawArea > 1 && Math.abs(candidateArea / rawArea - 1) > settings.maxAreaChange) return false;
+        const displacements = candidate.map(point => distanceToContour(point, raw));
+        const maximumDisplacement = Math.max(...displacements);
+        const rootMeanSquareError = Math.sqrt(displacements.reduce((sum, value) => sum + value * value, 0) / displacements.length);
+        return maximumDisplacement <= settings.maxBoundaryDisplacement
+          && rootMeanSquareError <= settings.curveFitError;
+      }
+
+      function contourSmoothingSettings(profile) {
+        if (profile === 'hue') {
+          return {
+            resampleCount: CLUSTER_CONFIG.hueContourResampleCount,
+            drawSamples: CLUSTER_CONFIG.hueContourDrawSamples,
+            weight: CLUSTER_CONFIG.hueSmoothingWeight,
+            maxBoundaryDisplacement: CLUSTER_CONFIG.maxBoundaryDisplacement * 1.35,
+            maxAreaChange: CLUSTER_CONFIG.maxAreaChange * 1.35,
+            curveFitError: CLUSTER_CONFIG.curveFitError * 1.45,
+            maxAbsoluteTurning: Math.PI * CLUSTER_CONFIG.hueMaxAbsoluteTurning,
+            maxLocalTurn: .92
+          };
+        }
+        if (profile === 'gamut') {
+          return {
+            resampleCount: CLUSTER_CONFIG.contourResampleCount,
+            drawSamples: CLUSTER_CONFIG.contourDrawSamples,
+            weight: CLUSTER_CONFIG.gamutSmoothingWeight,
+            maxBoundaryDisplacement: CLUSTER_CONFIG.maxBoundaryDisplacement * .9,
+            maxAreaChange: CLUSTER_CONFIG.maxAreaChange,
+            curveFitError: CLUSTER_CONFIG.curveFitError * 1.08,
+            maxAbsoluteTurning: Math.PI * CLUSTER_CONFIG.gamutMaxAbsoluteTurning,
+            maxLocalTurn: .78
+          };
+        }
+        return {
+          resampleCount: CLUSTER_CONFIG.contourResampleCount,
+          drawSamples: CLUSTER_CONFIG.contourDrawSamples,
+          weight: CLUSTER_CONFIG.smoothingWeight,
+          maxBoundaryDisplacement: CLUSTER_CONFIG.maxBoundaryDisplacement,
+          maxAreaChange: CLUSTER_CONFIG.maxAreaChange,
+          curveFitError: CLUSTER_CONFIG.curveFitError,
+          maxAbsoluteTurning: Math.PI * 3,
+          maxLocalTurn: .88
+        };
+      }
+
+      function smoothProjectedContour(points, bounds, profile = 'balanced') {
+        const settings = contourSmoothingSettings(profile);
+        const deduplicated = points.filter((point, index) => !index || pointDistance(point, points[index - 1]) > .35);
+        if (deduplicated.length > 2 && pointDistance(deduplicated[0], deduplicated[deduplicated.length - 1]) < .35) deduplicated.pop();
+        if (deduplicated.length < 6) return { points: deduplicated, level: 'raw' };
+        const raw = sampleClosedPolyline(deduplicated, settings.resampleCount);
+        const reference = sampleClosedPolyline(raw, settings.drawSamples);
+        for (const level of CLUSTER_CONFIG.fallbackLevels) {
+          if (level === 'raw') break;
+          const degree = level === 'periodic-quintic' ? CLUSTER_CONFIG.splineDegree : 3;
+          const spline = evaluatePeriodicUniformSpline(raw, degree, settings.drawSamples);
+          if (!spline) continue;
+          const blended = spline.map((point, index) => ({
+            x: reference[index].x + (point.x - reference[index].x) * settings.weight,
+            y: reference[index].y + (point.y - reference[index].y) * settings.weight
+          }));
+          if (validateSmoothedContour(raw, blended, bounds, settings)) {
+            return { points: blended, level: degree === 5 ? 'G3-target' : 'C2-fallback' };
+          }
+        }
+        const safeSource = contourSelfIntersects(raw) ? convexHull(raw) : raw;
+        for (const iterations of [2, 1]) {
+          const rounded = sampleClosedPolyline(chaikinClosed(safeSource, iterations), settings.drawSamples);
+          const safeSettings = {
+            ...settings,
+            maxBoundaryDisplacement: settings.maxBoundaryDisplacement * 1.2,
+            maxAreaChange: settings.maxAreaChange * 1.22,
+            curveFitError: settings.curveFitError * 1.2
+          };
+          if (validateSmoothedContour(safeSource, rounded, bounds, safeSettings)) {
+            return { points: rounded, level: 'rounded-safe' };
+          }
+        }
+        const convexSource = convexHull(safeSource);
+        if (convexSource.length >= 3) {
+          const roundedConvex = sampleClosedPolyline(chaikinClosed(convexSource, 2), settings.drawSamples);
+          const convexSettings = {
+            ...settings,
+            maxBoundaryDisplacement: settings.maxBoundaryDisplacement * 1.55,
+            maxAreaChange: settings.maxAreaChange * 1.65,
+            curveFitError: settings.curveFitError * 1.45
+          };
+          if (validateSmoothedContour(convexSource, roundedConvex, bounds, convexSettings)) {
+            return { points: roundedConvex, level: 'rounded-convex-safe' };
+          }
+        }
+        return { points: convexSource.length >= 3 ? convexSource : safeSource, level: 'raw-safe' };
+      }
+
+      function contourPath(points) {
+        if (!points.length) return '';
+        return `M ${points.map(point => `${point.x.toFixed(2)} ${point.y.toFixed(2)}`).join(' L ')} Z`;
+      }
+
+      function projectHueCoordinate(hue, chroma, geometry) {
+        const angle = hue * Math.PI / 180;
+        const radius = geometry.radius * clampNumber(chroma, 0, 100) / 100;
+        return { x: geometry.cx + Math.sin(angle) * radius, y: geometry.cy - Math.cos(angle) * radius };
+      }
+
+      function projectGamutCoordinate(chroma, lightness, geometry) {
+        return {
+          x: geometry.left + geometry.width * clampNumber(chroma, 0, 100) / 100,
+          y: geometry.top + geometry.height - geometry.height * clampNumber(lightness, 0, 100) / 100
+        };
+      }
+
+      function validChromaInterval(lightnessValues, hue, minimumChroma, maximumChroma) {
+        const samples = deterministicRangeValues(Math.max(0, minimumChroma), Math.max(minimumChroma, maximumChroma), 15);
+        const valid = samples.filter(C => lightnessValues.some(L => Boolean(displayableLch(L, C, hue))));
+        return valid.length ? { inner: valid[0], outer: valid[valid.length - 1] } : null;
+      }
+
+      function smoothHueIntervalRun(items, passes, wrap = false) {
+        let result = items.map(item => ({ ...item, interval: { ...item.interval } }));
+        const weights = [1, 2, 3, 2, 1];
+        for (let pass = 0; pass < passes; pass += 1) {
+          const source = result;
+          result = source.map((item, index) => {
+            if (!wrap && (index === 0 || index === source.length - 1)) return item;
+            let totalWeight = 0, inner = 0, outer = 0;
+            weights.forEach((weight, offsetIndex) => {
+              let sourceIndex = index + offsetIndex - 2;
+              if (wrap) sourceIndex = (sourceIndex + source.length) % source.length;
+              else sourceIndex = clampNumber(sourceIndex, 0, source.length - 1);
+              totalWeight += weight;
+              inner += source[sourceIndex].interval.inner * weight;
+              outer += source[sourceIndex].interval.outer * weight;
+            });
+            return { ...item, interval: { inner: inner / totalWeight, outer: outer / totalWeight } };
+          });
+        }
+        return result;
+      }
+
+      function hueBandEndCap(item, geometry) {
+        const angle = item.h * Math.PI / 180;
+        const innerRadius = geometry.radius * clampNumber(item.interval.inner, 0, 100) / 100;
+        const outerRadius = geometry.radius * clampNumber(item.interval.outer, 0, 100) / 100;
+        const middleRadius = (innerRadius + outerRadius) / 2;
+        const capRadius = Math.max(0, (outerRadius - innerRadius) / 2);
+        const radial = { x: Math.sin(angle), y: -Math.cos(angle) };
+        const tangent = { x: Math.cos(angle), y: Math.sin(angle) };
+        const center = { x: geometry.cx + radial.x * middleRadius, y: geometry.cy + radial.y * middleRadius };
+        return Array.from({ length: 6 }, (_, index) => {
+          const parameter = Math.PI * (index + 1) / 6;
+          return {
+            x: center.x + radial.x * capRadius * Math.cos(parameter) + tangent.x * capRadius * Math.sin(parameter) * CLUSTER_CONFIG.hueCapTangentialScale,
+            y: center.y + radial.y * capRadius * Math.cos(parameter) + tangent.y * capRadius * Math.sin(parameter) * CLUSTER_CONFIG.hueCapTangentialScale
+          };
+        });
+      }
+
+      function hueBandStartCap(item, geometry) {
+        const angle = item.h * Math.PI / 180;
+        const innerRadius = geometry.radius * clampNumber(item.interval.inner, 0, 100) / 100;
+        const outerRadius = geometry.radius * clampNumber(item.interval.outer, 0, 100) / 100;
+        const middleRadius = (innerRadius + outerRadius) / 2;
+        const capRadius = Math.max(0, (outerRadius - innerRadius) / 2);
+        const radial = { x: Math.sin(angle), y: -Math.cos(angle) };
+        const tangent = { x: Math.cos(angle), y: Math.sin(angle) };
+        const center = { x: geometry.cx + radial.x * middleRadius, y: geometry.cy + radial.y * middleRadius };
+        return Array.from({ length: 5 }, (_, index) => {
+          const parameter = Math.PI * (5 - index) / 6;
+          return {
+            x: center.x + radial.x * capRadius * Math.cos(parameter) - tangent.x * capRadius * Math.sin(parameter) * CLUSTER_CONFIG.hueCapTangentialScale,
+            y: center.y + radial.y * capRadius * Math.cos(parameter) - tangent.y * capRadius * Math.sin(parameter) * CLUSTER_CONFIG.hueCapTangentialScale
+          };
+        });
+      }
+
+      function hueBandContours(cluster, geometry, recommendation = false) {
+        const ranges = recommendation ? recommendationBoundsForCluster(cluster) : {
+          LMin: clampNumber(cluster.ranges.L10 - CLUSTER_CONFIG.boundaryPaddingL, 0, 100),
+          LMax: clampNumber(cluster.ranges.L90 + CLUSTER_CONFIG.boundaryPaddingL, 0, 100),
+          CMin: Math.max(0, cluster.ranges.C10 - (cluster.ring ? CLUSTER_CONFIG.ringPadding : CLUSTER_CONFIG.boundaryPaddingC)),
+          CMax: cluster.ranges.C90 + (cluster.ring ? CLUSTER_CONFIG.ringPadding : CLUSTER_CONFIG.boundaryPaddingC),
+          hStart: cluster.ring ? 0 : cluster.hue.arcStart - CLUSTER_CONFIG.boundaryPaddingHue,
+          hEnd: cluster.ring ? 360 : cluster.hue.arcEnd + CLUSTER_CONFIG.boundaryPaddingHue
+        };
+        const lightnessValues = deterministicRangeValues(ranges.LMin, ranges.LMax, 5);
+        const span = Math.max(1, ranges.hEnd - ranges.hStart);
+        const count = Math.max(16, Math.ceil(span / 3));
+        const angleSamples = Array.from({ length: count + 1 }, (_, index) => ranges.hStart + span * index / count);
+        const values = angleSamples.map(h => ({ h, interval: validChromaInterval(lightnessValues, h, ranges.CMin, ranges.CMax) }));
+        const runs = [];
+        let run = [];
+        values.forEach(value => {
+          if (value.interval) run.push(value);
+          else if (run.length) { runs.push(run); run = []; }
+        });
+        if (run.length) runs.push(run);
+        if (cluster.ring && runs.length > 1 && values[0].interval && values[values.length - 1].interval) {
+          const first = runs.shift();
+          const last = runs.pop();
+          runs.unshift([...last, ...first.map(value => ({ ...value, h: value.h + 360 }))]);
+        }
+        return runs.filter(items => items.length >= 3).map(items => {
+          const fullRing = cluster.ring && runs.length === 1 && items.length === values.length;
+          const smoothedItems = smoothHueIntervalRun(items, CLUSTER_CONFIG.hueRadialSmoothingPasses, fullRing);
+          const outer = smoothedItems.map(item => projectHueCoordinate(item.h, item.interval.outer, geometry));
+          const inner = [...smoothedItems].reverse().map(item => projectHueCoordinate(item.h, item.interval.inner, geometry));
+          if (fullRing) return [...outer, ...inner];
+          const endCap = hueBandEndCap(smoothedItems[smoothedItems.length - 1], geometry);
+          const startCap = hueBandStartCap(smoothedItems[0], geometry);
+          return [...outer, ...endCap, ...inner.slice(1), ...startCap];
+        });
+      }
+
+      function analyticHueRingPath(cluster, geometry, recommendation = false) {
+        if (!cluster.ring) return null;
+        const ranges = recommendation ? recommendationBoundsForCluster(cluster) : {
+          LMin: clampNumber(cluster.ranges.L10 - CLUSTER_CONFIG.boundaryPaddingL, 0, 100),
+          LMax: clampNumber(cluster.ranges.L90 + CLUSTER_CONFIG.boundaryPaddingL, 0, 100),
+          CMin: Math.max(0, cluster.ranges.C10 - CLUSTER_CONFIG.ringPadding),
+          CMax: cluster.ranges.C90 + CLUSTER_CONFIG.ringPadding
+        };
+        const lightnessValues = deterministicRangeValues(ranges.LMin, ranges.LMax, 5);
+        const intervals = Array.from({ length: 72 }, (_, index) =>
+          validChromaInterval(lightnessValues, index * 5, ranges.CMin, ranges.CMax));
+        if (intervals.some(interval => !interval)) return null;
+        const innerValues = intervals.map(interval => interval.inner);
+        const outerValues = intervals.map(interval => interval.outer);
+        if (Math.max(...innerValues) - Math.min(...innerValues) > .8 || Math.max(...outerValues) - Math.min(...outerValues) > .8) return null;
+        const inner = innerValues.reduce((sum, value) => sum + value, 0) / innerValues.length;
+        const outer = outerValues.reduce((sum, value) => sum + value, 0) / outerValues.length;
+        const innerRadius = geometry.radius * clampNumber(inner, 0, 100) / 100;
+        const outerRadius = geometry.radius * clampNumber(outer, 0, 100) / 100;
+        const { cx, cy } = geometry;
+        return [
+          `M ${cx} ${cy - outerRadius}`,
+          `A ${outerRadius} ${outerRadius} 0 1 1 ${cx} ${cy + outerRadius}`,
+          `A ${outerRadius} ${outerRadius} 0 1 1 ${cx} ${cy - outerRadius} Z`,
+          `M ${cx} ${cy - innerRadius}`,
+          `A ${innerRadius} ${innerRadius} 0 1 0 ${cx} ${cy + innerRadius}`,
+          `A ${innerRadius} ${innerRadius} 0 1 0 ${cx} ${cy - innerRadius} Z`
+        ].join(' ');
+      }
+
+      function planarCross(origin, first, second) {
+        return (first.x - origin.x) * (second.y - origin.y) - (first.y - origin.y) * (second.x - origin.x);
+      }
+
+      function convexHull(points) {
+        const sorted = points
+          .filter((point, index, all) => all.findIndex(candidate => Math.abs(candidate.x - point.x) < 1e-7 && Math.abs(candidate.y - point.y) < 1e-7) === index)
+          .sort((first, second) => first.x - second.x || first.y - second.y);
+        if (sorted.length <= 2) return sorted;
+        const lower = [];
+        sorted.forEach(point => {
+          while (lower.length >= 2 && planarCross(lower[lower.length - 2], lower[lower.length - 1], point) <= 0) lower.pop();
+          lower.push(point);
+        });
+        const upper = [];
+        [...sorted].reverse().forEach(point => {
+          while (upper.length >= 2 && planarCross(upper[upper.length - 2], upper[upper.length - 1], point) <= 0) upper.pop();
+          upper.push(point);
+        });
+        return [...lower.slice(0, -1), ...upper.slice(0, -1)];
+      }
+
+      function gamutClusterContour(cluster, geometry, recommendation = false) {
+        const recommendationBounds = recommendation ? recommendationBoundsForCluster(cluster) : null;
+        const paddingScale = recommendation
+          ? CLUSTER_CONFIG.gamutRecommendationPaddingScale
+          : CLUSTER_CONFIG.gamutContourPaddingScale;
+        const paddingL = (recommendation ? recommendationBounds.paddingL : CLUSTER_CONFIG.boundaryPaddingL) * paddingScale;
+        const paddingC = (recommendation ? recommendationBounds.paddingC : CLUSTER_CONFIG.boundaryPaddingC) * paddingScale;
+        const robustMembers = cluster.members.filter(member =>
+          member.L >= cluster.ranges.L10 - 1e-6 && member.L <= cluster.ranges.L90 + 1e-6
+          && member.C >= cluster.ranges.C10 - 1e-6 && member.C <= cluster.ranges.C90 + 1e-6);
+        const members = robustMembers.length >= 3 ? robustMembers : cluster.members;
+        const supportPoints = [];
+        members.forEach(member => {
+          for (let index = 0; index < CLUSTER_CONFIG.gamutContourSupportSamples; index += 1) {
+            const angle = Math.PI * 2 * index / CLUSTER_CONFIG.gamutContourSupportSamples;
+            supportPoints.push({
+              x: clampNumber(member.C + Math.cos(angle) * paddingC, 0, 100),
+              y: clampNumber(member.L + Math.sin(angle) * paddingL, 0, 100)
+            });
+          }
+        });
+        const hull = convexHull(supportPoints);
+        return hull.map(point => projectGamutCoordinate(point.x, point.y, geometry));
+      }
+
+      function appendClusterContour(root, points, cluster, recommendation, chartBounds, profile = 'balanced') {
+        if (points.length < 3) return;
+        const smoothed = smoothProjectedContour(points, chartBounds, profile);
+        if (!recommendation && cluster.smoothingLevel === 'raw') cluster.smoothingLevel = smoothed.level;
+        const path = svg('path', {
+          d: contourPath(smoothed.points),
+          class: `cluster-shape ${recommendation ? 'recommended' : 'actual'}`,
+          tabindex: '0',
+          role: 'button',
+          'aria-label': `聚落 ${cluster.index + 1}，${cluster.typeLabel}，${recommendation ? '潜在推荐区域' : '实际样本范围'}`,
+          style: `--cluster-color:${cluster.color}`
+        });
+        attachClusterInteraction(path, cluster);
+        root.appendChild(path);
+      }
+
+
+      function appendAnalyticClusterPath(root, pathData, cluster, recommendation) {
+        const path = svg('path', {
+          d: pathData,
+          class: `cluster-shape ${recommendation ? 'recommended' : 'actual'}`,
+          tabindex: '0',
+          role: 'button',
+          'fill-rule': 'evenodd',
+          'aria-label': `聚落 ${cluster.index + 1}，${cluster.typeLabel}，${recommendation ? '潜在推荐区域' : '实际样本范围'}`,
+          style: `--cluster-color:${cluster.color}`
+        });
+        if (!recommendation) cluster.smoothingLevel = 'analytic';
+        attachClusterInteraction(path, cluster);
+        root.appendChild(path);
+      }
+
+      function renderClusterOverlays(hue, gamut) {
+        if (!clusterState.clusters.length) return;
+        const hueLayer = svg('g', { class: 'cluster-layer', 'aria-label': '色相图聚落轮廓' });
+        const gamutLayer = svg('g', { class: 'cluster-layer', 'aria-label': '色域图聚落轮廓' });
+        els.hueChart.appendChild(hueLayer);
+        els.gamutChart.appendChild(gamutLayer);
+        const hueBounds = { left: hue.cx - hue.radius, right: hue.cx + hue.radius, top: hue.cy - hue.radius, bottom: hue.cy + hue.radius };
+        const gamutBounds = { left: gamut.left, right: gamut.left + gamut.width, top: gamut.top, bottom: gamut.top + gamut.height };
+        clusterState.clusters.forEach(cluster => {
+          const actualAnalyticRing = analyticHueRingPath(cluster, hue, false);
+          if (actualAnalyticRing) appendAnalyticClusterPath(hueLayer, actualAnalyticRing, cluster, false);
+          else hueBandContours(cluster, hue, false).forEach(points => appendClusterContour(hueLayer, points, cluster, false, hueBounds, 'hue'));
+          appendClusterContour(gamutLayer, gamutClusterContour(cluster, gamut, false), cluster, false, gamutBounds, 'gamut');
+          if (clusterState.showRecommendationRange && clusterState.recommendations.some(item => item.clusterId === cluster.id)) {
+            const recommendationAnalyticRing = analyticHueRingPath(cluster, hue, true);
+            if (recommendationAnalyticRing) appendAnalyticClusterPath(hueLayer, recommendationAnalyticRing, cluster, true);
+            else hueBandContours(cluster, hue, true).forEach(points => appendClusterContour(hueLayer, points, cluster, true, hueBounds, 'hue'));
+            appendClusterContour(gamutLayer, gamutClusterContour(cluster, gamut, true), cluster, true, gamutBounds, 'gamut');
+          }
+        });
+      }
+
+      function appendRecommendedPoint(root, x, y, recommendation, cluster) {
+        const group = svg('g', {
+          class: 'recommended-point cluster-member',
+          tabindex: '0',
+          role: 'button',
+          'aria-label': `潜在推荐色 ${recommendation.hex}，${pointLabel(recommendation)}`,
+          style: `--cluster-color:${cluster.color}`
+        });
+        group.dataset.clusterId = cluster.id;
+        group.dataset.recommendationId = recommendation.id;
+        group.appendChild(svg('circle', { cx: x, cy: y, r: 8 }));
+        group.appendChild(svg('path', { d: `M ${x - 3.3} ${y} H ${x + 3.3} M ${x} ${y - 3.3} V ${y + 3.3}` }));
+        const tooltipText = `潜在推荐色 ${recommendation.hex}<br>${recommendationLabLabel(recommendation)}<br>${pointLabel(recommendation)}<br>${recommendation.reason}`;
+        group.addEventListener('pointerenter', event => {
+          clusterState.hoveredClusterId = cluster.id;
+          clusterState.selectedRecommendationId = recommendation.id;
+          applyClusterFocusStyles();
+          showTooltip(event, tooltipText);
+        });
+        group.addEventListener('pointermove', moveTooltip);
+        group.addEventListener('pointerleave', () => {
+          clusterState.hoveredClusterId = null;
+          applyClusterFocusStyles();
+          hideTooltip();
+        });
+        group.addEventListener('click', () => {
+          clusterState.selectedRecommendationId = recommendation.id;
+          clusterState.focusedClusterId = clusterState.focusedClusterId === cluster.id ? null : cluster.id;
+          renderClusterPanel();
+          applyClusterFocusStyles();
+        });
+        group.addEventListener('focus', event => showTooltip(event, tooltipText));
+        group.addEventListener('blur', hideTooltip);
+        root.appendChild(group);
+      }
+
+      function renderRecommendationsOnCharts(hue, gamut) {
+        clusterState.recommendations.forEach(recommendation => {
+          const cluster = clusterState.clusters.find(item => item.id === recommendation.clusterId);
+          if (!cluster) return;
+          const huePoint = projectHueCoordinate(recommendation.h, recommendation.C, hue);
+          appendRecommendedPoint(els.hueChart, huePoint.x, huePoint.y, recommendation, cluster);
+          const gamutPoint = projectGamutCoordinate(recommendation.C, recommendation.L, gamut);
+          appendRecommendedPoint(els.gamutChart, gamutPoint.x, gamutPoint.y, recommendation, cluster);
+        });
+      }
+
       function renderHueBase(root) {
         const cx = 270, cy = 270, radius = 210;
         root.replaceChildren();
@@ -3048,8 +4689,18 @@
         return { left, top, width, height };
       }
 
-      function appendPoint(root, x, y, color, current, label) {
-        const group = svg('g', { class: 'plot-point', tabindex: '0', role: 'button', 'aria-label': `${label}，L ${format(color.L)}，C ${format(color.C)}，h ${format(color.h)} 度` });
+      function appendPoint(root, x, y, color, current, label, clusterId = null) {
+        const group = svg('g', {
+          class: `plot-point${clusterId ? ' cluster-member' : ''}`,
+          tabindex: '0',
+          role: 'button',
+          'aria-label': `${label}，L ${format(color.L)}，C ${format(color.C)}，h ${format(color.h)} 度`
+        });
+        if (clusterId) {
+          const cluster = clusterState.clusters.find(item => item.id === clusterId);
+          group.dataset.clusterId = clusterId;
+          if (cluster) group.style.setProperty('--cluster-color', cluster.color);
+        }
         if (current) {
           group.appendChild(svg('circle', { cx: x, cy: y, r: 13, fill: 'none', stroke: 'rgba(255,255,255,.22)', 'stroke-width': 4 }));
           group.appendChild(svg('circle', { cx: x, cy: y, r: 7.5, fill: color.hex, stroke: '#ffffff', 'stroke-width': 2 }));
@@ -3192,8 +4843,10 @@
       }
 
       function renderCharts() {
+        ensureClusterAnalysis();
         const hue = renderHueBase(els.hueChart);
         const gamut = renderGamutBase(els.gamutChart);
+        renderClusterOverlays(hue, gamut);
         const current = state.previewVisible && !state.activeTagId ? state.current : null;
         const currentKey = current ? displayLchKey(current) : null;
         const plottedKeys = new Set();
@@ -3206,6 +4859,8 @@
         });
         visible.forEach(color => renderColorOnCharts(color, false, hue, gamut));
         if (current) renderColorOnCharts(current, true, hue, gamut);
+        if (clusterState.recommendations.length) renderRecommendationsOnCharts(hue, gamut);
+        applyClusterFocusStyles();
       }
 
       function renderColorOnCharts(color, current, hue, gamut) {
@@ -3213,10 +4868,11 @@
         const angle = color.h * Math.PI / 180;
         const hx = hue.cx + Math.sin(angle) * hue.radius * plottedC / 100;
         const hy = hue.cy - Math.cos(angle) * hue.radius * plottedC / 100;
-        appendPoint(els.hueChart, hx, hy, color, current, `${current ? '当前 ' : ''}${pointLabel(color)}`);
+        const clusterId = current ? null : clusterState.colorClusterIds.get(String(color.id)) || null;
+        appendPoint(els.hueChart, hx, hy, color, current, `${current ? '当前 ' : ''}${pointLabel(color)}`, clusterId);
         const gx = gamut.left + gamut.width * plottedC / 100;
         const gy = gamut.top + gamut.height - gamut.height * Math.min(Math.max(color.L, 0), 100) / 100;
-        appendPoint(els.gamutChart, gx, gy, color, current, `${current ? '当前 ' : ''}${pointLabel(color)}`);
+        appendPoint(els.gamutChart, gx, gy, color, current, `${current ? '当前 ' : ''}${pointLabel(color)}`, clusterId);
       }
 
       function eyeIcon(visible) {
@@ -3244,6 +4900,7 @@
           : `色库共 ${state.library.length} 色`;
         els.grid.replaceChildren();
         renderStatistics();
+        renderClusterPanel();
         if (!state.library.length) {
           const empty = document.createElement('div');
           empty.className = 'empty';
@@ -3386,6 +5043,7 @@
         state.previewVisible = false;
         saveLibrary(); renderLibrary(); renderCharts();
       });
+      els.exploreRecommendations.addEventListener('click', exploreClusterRecommendations);
       els.manageTags.addEventListener('click', openTagManager);
       els.closeTagManager.addEventListener('click', closeTagManager);
       els.addManagedTag.addEventListener('click', createManagedTag);
@@ -3484,6 +5142,17 @@
           resizeExtractPreviewFrame();
         });
       }
+
+      window.__CIE_LCH_CLUSTER_TEST__ = Object.freeze({
+        config: CLUSTER_CONFIG,
+        analyzeColorClusters,
+        generateRecommendations,
+        deltaE2000,
+        displayableLch,
+        smoothProjectedContour,
+        hueBandContours,
+        gamutClusterContour
+      });
 
       syncViewportMode();
       convertCurrent(false, false);
