@@ -1449,6 +1449,66 @@
         { label: '低明无彩', color: '#50565C' }
       ];
 
+      // ---------- Shared persistence and rendering services ----------
+
+      function readLocalJson(key, fallback) {
+        try {
+          const value = localStorage.getItem(key);
+          return value ? JSON.parse(value) : fallback;
+        } catch (_) {
+          return fallback;
+        }
+      }
+
+      function writeLocalJson(key, value) {
+        try { localStorage.setItem(key, JSON.stringify(value)); }
+        catch (_) {}
+      }
+
+      function createColorId() {
+        return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      }
+
+      function sameDisplayColor(first, second) {
+        return Boolean(first && second && displayLchKey(first) === displayLchKey(second));
+      }
+
+      function libraryHasColor(color, { includeHex = false } = {}) {
+        return state.library.some(item => sameDisplayColor(item, color) || (includeHex && item.hex === color.hex));
+      }
+
+      function createLibraryColor(color, overrides = {}) {
+        const { tags = [], ...properties } = overrides;
+        return {
+          ...color,
+          id: createColorId(),
+          visible: true,
+          rgb: [...color.rgb],
+          ...properties,
+          tags: normalizeTags(tags)
+        };
+      }
+
+      function renderWorkspace({ updateCurrent = false } = {}) {
+        renderLibrary();
+        renderCharts();
+        if (updateCurrent) updateResult();
+      }
+
+      function commitLibraryChange({ updateCurrent = false, saveTags = false, renderManager = false } = {}) {
+        if (saveTags) saveTagRegistry();
+        saveLibrary();
+        if (renderManager) renderTagManager();
+        renderWorkspace({ updateCurrent });
+      }
+
+      function setModalOpen(modal, open) {
+        modal.hidden = !open;
+        syncBodyModalState();
+      }
+
+      // ---------- Tags and library data ----------
+
       function tagKey(value) {
         return String(value || '').trim().normalize('NFKC').toLocaleLowerCase();
       }
@@ -1471,16 +1531,11 @@
       }
 
       function loadTagRegistry() {
-        try {
-          const raw = localStorage.getItem(TAG_STORAGE_KEY);
-          const parsed = raw ? JSON.parse(raw) : [];
-          return normalizeTags(parsed);
-        } catch (_) { return []; }
+        return normalizeTags(readLocalJson(TAG_STORAGE_KEY, []));
       }
 
       function saveTagRegistry() {
-        try { localStorage.setItem(TAG_STORAGE_KEY, JSON.stringify(normalizeTags(state.tags))); }
-        catch (_) {}
+        writeLocalJson(TAG_STORAGE_KEY, normalizeTags(state.tags));
       }
 
       function registerTags(tags) {
@@ -1517,18 +1572,16 @@
       }
 
       function loadLibrary() {
-        try {
-          const raw = localStorage.getItem(STORAGE_KEY);
-          const parsed = raw ? JSON.parse(raw) : [];
-          if (!Array.isArray(parsed)) return [];
-          return parsed.map(item => {
+        const parsed = readLocalJson(STORAGE_KEY, []);
+        if (!Array.isArray(parsed)) return [];
+        return parsed.map(item => {
             if (!item || !normalizeHex(item.hex)) return null;
             const hasCoordinates = [item.L, item.C, item.h].every(Number.isFinite);
             if (hasCoordinates) {
               const sourceType = ['hex', 'lab', 'lch'].includes(item.sourceType) ? item.sourceType : 'hex';
               const sourceValue = item.sourceValue || item.hex.toUpperCase();
               return {
-                id: String(item.id || `${Date.now()}-${Math.random()}`),
+                id: String(item.id || createColorId()),
                 visible: item.visible !== false,
                 sourceType,
                 sourceValue,
@@ -1544,24 +1597,21 @@
             if (!migrated) return null;
             return {
               ...migrated,
-              id: String(item.id || `${Date.now()}-${Math.random()}`),
+              id: String(item.id || createColorId()),
               visible: item.visible !== false,
               sourceType: 'hex', sourceValue: migrated.hex, key: `hex:${migrated.hex}`,
               tags: normalizeTags(item.tags)
             };
           }).filter(Boolean);
-        } catch (_) { return []; }
       }
 
       function saveLibrary() {
-        try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(state.library.map(color => ({
+        writeLocalJson(STORAGE_KEY, state.library.map(color => ({
             id: color.id, visible: color.visible, sourceType: color.sourceType,
             sourceValue: color.sourceValue, key: color.key, hex: color.hex, rgb: color.rgb,
             L: color.L, C: color.C, h: color.h, outOfGamut: color.outOfGamut === true,
             tags: normalizeTags(color.tags)
-          }))));
-        } catch (_) {}
+          })));
       }
 
       function syncBodyModalState() {
@@ -1591,8 +1641,7 @@
             state.activeTagId = id;
             state.activeTagLabel = label;
           }
-          renderLibrary();
-          renderCharts();
+          renderWorkspace();
         });
         return button;
       }
@@ -1664,19 +1713,17 @@
         els.tagNameInput.value = '';
         els.tagDialogError.textContent = '';
         renderTagDialogChoices();
-        els.tagModal.hidden = false;
-        syncBodyModalState();
+        setModalOpen(els.tagModal, true);
         requestAnimationFrame(() => els.tagNameInput.focus());
       }
 
       function closeTagDialog({ restoreFocus = true } = {}) {
         if (els.tagModal.hidden) return;
         const returnFocus = tagDialogState.returnFocus;
-        els.tagModal.hidden = true;
+        setModalOpen(els.tagModal, false);
         tagDialogState.onConfirm = null;
         tagDialogState.returnFocus = null;
         els.tagDialogError.textContent = '';
-        syncBodyModalState();
         if (restoreFocus && returnFocus && typeof returnFocus.focus === 'function' && returnFocus.isConnected) returnFocus.focus();
       }
 
@@ -1712,6 +1759,35 @@
         if (callback) callback(tags);
       }
 
+      function requestLibraryAddition(color, options = {}) {
+        const {
+          title = '添加颜色到色库', subtitle = '', initialTags = [], returnFocus = null,
+          includeHex = false, properties = {}, beforeCommit = null, onDuplicate = null, onAdded = null
+        } = options;
+        if (libraryHasColor(color, { includeHex })) {
+          if (onDuplicate) onDuplicate();
+          return false;
+        }
+        openTagDialog({
+          title,
+          subtitle,
+          initialTags,
+          returnFocus,
+          onConfirm: tags => {
+            if (libraryHasColor(color, { includeHex })) {
+              if (onDuplicate) onDuplicate();
+              return;
+            }
+            if (beforeCommit) beforeCommit();
+            const extra = typeof properties === 'function' ? properties(color) : properties;
+            state.library.unshift(createLibraryColor(color, { ...extra, tags }));
+            commitLibraryChange({ updateCurrent: true });
+            if (onAdded) onAdded();
+          }
+        });
+        return true;
+      }
+
       function tagUsageCounts() {
         const counts = new Map();
         state.library.forEach(color => normalizeTags(color.tags).forEach(label => {
@@ -1727,19 +1803,17 @@
         els.tagManagerNameInput.value = '';
         els.tagManagerError.textContent = '';
         renderTagManager();
-        els.tagManagerModal.hidden = false;
-        syncBodyModalState();
+        setModalOpen(els.tagManagerModal, true);
         requestAnimationFrame(() => els.tagManagerNameInput.focus());
       }
 
       function closeTagManager() {
         if (els.tagManagerModal.hidden) return;
         const returnFocus = tagManagerState.returnFocus;
-        els.tagManagerModal.hidden = true;
+        setModalOpen(els.tagManagerModal, false);
         tagManagerState.editingKey = null;
         tagManagerState.returnFocus = null;
         els.tagManagerError.textContent = '';
-        syncBodyModalState();
         if (returnFocus && typeof returnFocus.focus === 'function' && returnFocus.isConnected) returnFocus.focus();
       }
 
@@ -1793,11 +1867,7 @@
         }
         tagManagerState.editingKey = null;
         els.tagManagerError.textContent = '';
-        saveTagRegistry();
-        saveLibrary();
-        renderTagManager();
-        renderLibrary();
-        renderCharts();
+        commitLibraryChange({ saveTags: true, renderManager: true });
       }
 
       function deleteManagedTag(key) {
@@ -1821,11 +1891,7 @@
         }
         tagManagerState.editingKey = null;
         els.tagManagerError.textContent = '';
-        saveTagRegistry();
-        saveLibrary();
-        renderTagManager();
-        renderLibrary();
-        renderCharts();
+        commitLibraryChange({ saveTags: true, renderManager: true });
       }
 
       function renderTagManager() {
@@ -1914,6 +1980,8 @@
           els.tagManagerList.appendChild(row);
         });
       }
+
+      // ---------- Color conversion and perceptual math ----------
 
       function normalizeHex(value) {
         if (typeof value !== 'string') return null;
@@ -2014,6 +2082,8 @@
         const fx = labPivot(x / 0.95047), fy = labPivot(y), fz = labPivot(z / 1.08883);
         return { L: 116 * fy - 16, a: 500 * (fx - fy), b: 200 * (fy - fz) };
       }
+
+      // ---------- Local image extraction engine ----------
 
       function buildColorBins(imageData) {
         const map = new Map();
@@ -2172,6 +2242,8 @@
       }
 
       // CLUSTER_ENGINE_START — pure, deterministic analysis functions.
+      // ---------- Color-cluster analysis and recommendations ----------
+
       function clampNumber(value, minimum, maximum) {
         return Math.min(maximum, Math.max(minimum, value));
       }
@@ -3403,6 +3475,8 @@
         return { colors, otherTenths: tenths[tenths.length - 1] };
       }
 
+      // ---------- Image extraction UI controller ----------
+
       function cloneExtractAnalysis(analysis) {
         return {
           colors: analysis.colors.map(color => ({ ...color })),
@@ -3544,16 +3618,14 @@
       function openImageExtractModal() {
         extractState.returnFocus = document.activeElement;
         resetImageExtractSession();
-        els.extractModal.hidden = false;
-        syncBodyModalState();
+        setModalOpen(els.extractModal, true);
         els.closeExtract.focus();
       }
 
       function closeImageExtractModal() {
         const returnFocus = extractState.returnFocus;
         resetImageExtractSession();
-        els.extractModal.hidden = true;
-        syncBodyModalState();
+        setModalOpen(els.extractModal, false);
         extractState.returnFocus = null;
         if (returnFocus && typeof returnFocus.focus === 'function') returnFocus.focus();
       }
@@ -3851,47 +3923,28 @@
         if (extractState.busy) return;
         const color = extractState.currentColors.find(item => item.id === id);
         if (!color) return;
-        if (state.library.some(item => displayLchKey(item) === displayLchKey(color))) {
+        const duplicate = () => {
           setExtractStatus('颜色已存在于色库', 'success');
           hideTooltip();
           renderExtractResults();
-          return;
-        }
-        const returnFocus = document.activeElement;
-        openTagDialog({
+        };
+        requestLibraryAddition(color, {
           title: '添加图片颜色',
           subtitle: `${color.hex} · 选择已有标签或新建标签，也可以不选择直接添加。`,
-          returnFocus,
-          onConfirm: tags => {
-            if (state.library.some(item => displayLchKey(item) === displayLchKey(color))) {
-              setExtractStatus('颜色已存在于色库', 'success');
-              renderExtractResults();
-              return;
-            }
-            state.library.unshift({
-              id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-              visible: true,
-              sourceType: 'hex',
-              sourceValue: color.hex,
-              key: `image:${displayLchKey(color)}`,
-              hex: color.hex,
-              rgb: [...color.rgb],
-              L: color.L,
-              C: color.C,
-              h: color.h,
-              outOfGamut: color.outOfGamut === true,
-              tags
-            });
-            saveLibrary();
-            renderLibrary();
-            renderCharts();
-            updateResult();
+          returnFocus: document.activeElement,
+          properties: {
+            sourceType: 'hex', sourceValue: color.hex, key: `image:${displayLchKey(color)}`
+          },
+          onDuplicate: duplicate,
+          onAdded: () => {
             setExtractStatus('颜色已添加到色库', 'success');
             hideTooltip();
             renderExtractResults();
           }
         });
       }
+
+      // ---------- Manual color input ----------
 
       function parseColorInput(type, value) {
         if (type === 'hex') {
@@ -3957,37 +4010,24 @@
         els.resultHex.textContent = `${inputTypeLabel(color.sourceType)} · ${color.sourceValue}`;
         els.resultLch.textContent = `L ${format(color.L)} · C ${format(color.C)} · h ${format(color.h)}°`;
         els.resultNote.textContent = color.outOfGamut ? 'sRGB 预览已裁切至显示色域' : '';
-        const exists = state.library.some(item => displayLchKey(item) === displayLchKey(color));
+        const exists = libraryHasColor(color);
         els.add.textContent = exists ? '已在色库' : '添加到色库';
         els.add.disabled = exists;
         els.add.classList.toggle('is-added', exists);
       }
 
       function addCurrent() {
-        if (!state.current || state.library.some(item => displayLchKey(item) === displayLchKey(state.current))) return;
+        if (!state.current) return;
         const color = { ...state.current, rgb: [...state.current.rgb] };
-        openTagDialog({
+        requestLibraryAddition(color, {
           title: '添加颜色到色库',
           subtitle: `${color.hex} · 选择已有标签或新建标签，也可以不选择直接添加。`,
-          onConfirm: tags => {
-            if (state.library.some(item => displayLchKey(item) === displayLchKey(color))) {
-              updateResult();
-              return;
-            }
-            state.library.unshift({
-              ...color,
-              id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-              visible: true,
-              tags
-            });
-            state.previewVisible = false;
-            saveLibrary();
-            renderLibrary();
-            renderCharts();
-            updateResult();
-          }
+          beforeCommit: () => { state.previewVisible = false; },
+          onDuplicate: updateResult
         });
       }
+
+      // ---------- Cluster state, projections and recommendation UI ----------
 
       function svg(tag, attributes = {}, text = '') {
         const node = document.createElementNS('http://www.w3.org/2000/svg', tag);
@@ -4221,32 +4261,17 @@
       }
 
       function addRecommendationToLibrary(recommendation, returnFocus) {
-        if (state.library.some(item => item.hex === recommendation.hex || displayLchKey(item) === displayLchKey(recommendation))) return;
-        openTagDialog({
+        requestLibraryAddition(recommendation, {
           title: '添加潜在推荐色',
           subtitle: `${recommendation.hex} · 已默认勾选当前分析标签，可在添加前修改。`,
           initialTags: recommendation.tagLabel ? [recommendation.tagLabel] : [],
           returnFocus,
-          onConfirm: tags => {
-            if (state.library.some(item => item.hex === recommendation.hex || displayLchKey(item) === displayLchKey(recommendation))) return;
-            state.library.unshift({
-              id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-              visible: true,
+          includeHex: true,
+          properties: {
               sourceType: 'lch',
               sourceValue: `(${formatInput(recommendation.L)}, ${formatInput(recommendation.C)}, ${formatInput(recommendation.h)})`,
               key: `recommendation:${recommendation.hex}:${Date.now()}`,
-              hex: recommendation.hex,
-              rgb: [...recommendation.rgb],
-              L: recommendation.L,
-              C: recommendation.C,
-              h: recommendation.h,
-              outOfGamut: false,
-              tags
-            });
-            saveLibrary();
-            renderLibrary();
-            renderCharts();
-            updateResult();
+              outOfGamut: false
           }
         });
       }
@@ -4852,6 +4877,8 @@
         });
       }
 
+      // ---------- Chart and library rendering ----------
+
       function renderHueBase(root) {
         const cx = 270, cy = 270, radius = 210;
         root.replaceChildren();
@@ -5157,7 +5184,8 @@
             card.querySelector('.color-meta').appendChild(tagsRow);
           }
           card.querySelector('.visibility-toggle').addEventListener('click', () => {
-            color.visible = !color.visible; saveLibrary(); renderLibrary(); renderCharts();
+            color.visible = !color.visible;
+            commitLibraryChange();
           });
           card.querySelector('.tag-edit-button').addEventListener('click', event => {
             openTagDialog({
@@ -5167,15 +5195,13 @@
               returnFocus: event.currentTarget,
               onConfirm: tags => {
                 color.tags = tags;
-                saveLibrary();
-                renderLibrary();
-                renderCharts();
+                commitLibraryChange();
               }
             });
           });
           card.querySelector('.delete-color-button').addEventListener('click', () => {
             state.library = state.library.filter(item => item.id !== color.id);
-            saveLibrary(); renderLibrary(); renderCharts(); updateResult();
+            commitLibraryChange({ updateCurrent: true });
           });
           els.grid.appendChild(card);
         });
@@ -5229,6 +5255,8 @@
         convertCurrent(false);
       }
 
+      // ---------- Event wiring and application bootstrap ----------
+
       els.convert.addEventListener('click', () => convertCurrent(false));
       els.add.addEventListener('click', addCurrent);
       els.inputType.addEventListener('change', configureInputType);
@@ -5239,12 +5267,12 @@
       });
       els.selectAll.addEventListener('click', () => {
         getFilteredLibrary().forEach(color => { color.visible = true; });
-        saveLibrary(); renderLibrary(); renderCharts();
+        commitLibraryChange();
       });
       els.clearVisible.addEventListener('click', () => {
         getFilteredLibrary().forEach(color => { color.visible = false; });
         state.previewVisible = false;
-        saveLibrary(); renderLibrary(); renderCharts();
+        commitLibraryChange();
       });
       els.exploreRecommendations.addEventListener('click', exploreClusterRecommendations);
       els.manageTags.addEventListener('click', openTagManager);
@@ -5347,16 +5375,18 @@
         });
       }
 
-      window.__CIE_LCH_CLUSTER_TEST__ = Object.freeze({
-        config: CLUSTER_CONFIG,
-        analyzeColorClusters,
-        generateRecommendations,
-        deltaE2000,
-        displayableLch,
-        smoothProjectedContour,
-        hueBandContours,
-        gamutClusterContour
-      });
+      if (new URLSearchParams(window.location.search).has('debug')) {
+        window.__CIE_LCH_CLUSTER_TEST__ = Object.freeze({
+          config: CLUSTER_CONFIG,
+          analyzeColorClusters,
+          generateRecommendations,
+          deltaE2000,
+          displayableLch,
+          smoothProjectedContour,
+          hueBandContours,
+          gamutClusterContour
+        });
+      }
 
       syncViewportMode();
       convertCurrent(false, false);
