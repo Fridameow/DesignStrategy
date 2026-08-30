@@ -416,7 +416,7 @@
     .chart-wrap { position: relative; width: min(100%, 600px); aspect-ratio: 1; margin: 0 auto; }
     .lh-chart-wrap {
       width: 100%;
-      max-width: 1290px;
+      max-width: none;
       height: min(600px, calc((100vw - 166px) / 2));
       min-height: 300px;
       aspect-ratio: auto;
@@ -944,51 +944,449 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
     }
+
+    /* ---------- Integrated intro and restrained visual refinement ---------- */
+    :root {
+      --panel: rgba(15, 17, 19, .72);
+      --shadow: 0 18px 54px rgba(0, 0, 0, .28);
+      --radius-xl: 21px;
+      --radius-md: 11px;
+      --intro-fold-closed: 58px;
+      --intro-fold-open: 262px;
+    }
+
+    body::before,
+    body::after { display: none; }
+
+    .app {
+      width: 100%;
+      margin: 0;
+      padding: 0 0 72px;
+    }
+
+    .charts-grid,
+    .library,
+    .cluster-panel,
+    .stats-grid {
+      width: min(1500px, calc(100% - 48px));
+      margin-inline: auto;
+    }
+
+    .glass {
+      border-color: rgba(255,255,255,.095);
+      background: var(--panel);
+      box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.025);
+      backdrop-filter: blur(18px) saturate(112%);
+      -webkit-backdrop-filter: blur(18px) saturate(112%);
+    }
+
+    .chart-card,
+    .library,
+    .cluster-panel,
+    .stats-card { border-radius: var(--radius-xl); }
+
+    .color-card,
+    .cluster-summary,
+    .recommendation-card { border-radius: 12px; }
+
+    .chart-view-switch,
+    .tag-filter,
+    .cluster-metric,
+    .stats-total { border-radius: 9px; }
+
+    .intro {
+      position: relative;
+      width: 100%;
+      min-height: 100svh;
+      margin-bottom: 34px;
+      overflow: hidden;
+      isolation: isolate;
+      background:
+        radial-gradient(circle at 50% 108%, rgba(255,255,255,.018), transparent 38%),
+        var(--bg);
+    }
+
+    .intro-pixel-canvas,
+    .intro-pixel-grid,
+    .intro-veil {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .intro-pixel-canvas { z-index: -4; display: block; }
+
+    .intro-pixel-grid {
+      display: none;
+    }
+
+    .intro-veil {
+      z-index: -2;
+      background: linear-gradient(180deg, rgba(7,8,9,.12), rgba(7,8,9,.28)), rgba(7,8,9,.41);
+    }
+
+    .intro-shell {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-rows: 82px minmax(0, 1fr) 68px;
+      width: min(1420px, calc(100% - 56px));
+      min-height: 100svh;
+      margin: 0 auto;
+    }
+
+    .intro-topbar {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,.075);
+    }
+
+    .intro-brand {
+      color: rgba(255,255,255,.82);
+      font-size: 13px;
+      letter-spacing: -.015em;
+    }
+
+    .intro-system {
+      justify-self: center;
+      color: rgba(255,255,255,.3);
+      font-size: 10px;
+      letter-spacing: .15em;
+    }
+
+    .intro-hero {
+      display: grid;
+      place-items: center;
+      min-height: 0;
+      padding: 36px 0 30px;
+    }
+
+    .intro-poster { width: min(1080px, 100%); text-align: center; }
+
+    .intro-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0 0 21px;
+      color: rgba(255,255,255,.48);
+      font-size: 10px;
+      letter-spacing: .16em;
+    }
+
+    .intro-kicker::before,
+    .intro-kicker::after {
+      content: "";
+      display: block;
+      width: 30px;
+      height: 1px;
+      background: rgba(255,255,255,.19);
+    }
+
+    .intro-title {
+      margin: 0;
+      font-size: clamp(58px, 8.4vw, 124px);
+      font-weight: 520;
+      line-height: .94;
+      letter-spacing: -.055em;
+      text-wrap: balance;
+    }
+
+    .intro-title-cn {
+      margin: 15px 0 0;
+      color: rgba(255,255,255,.86);
+      font-size: clamp(23px, 2.25vw, 32px);
+      font-weight: 520;
+      letter-spacing: -.035em;
+    }
+
+    .intro-description {
+      width: min(610px, 100%);
+      margin: 19px auto 0;
+      color: rgba(245,245,242,.42);
+      font-size: 12px;
+      line-height: 1.65;
+      text-wrap: balance;
+    }
+
+    .intro-hint {
+      margin: 12px 0 0;
+      color: rgba(255,255,255,.25);
+      font-size: 9px;
+      letter-spacing: .14em;
+    }
+
+    .intro-actions {
+      position: relative;
+      width: min(760px, calc(100% - 24px));
+      height: var(--intro-fold-open);
+      margin: 27px auto 0;
+      text-align: left;
+      pointer-events: none;
+    }
+
+    .intro-fold-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: rgba(255,255,255,.17);
+      transition: top .4s cubic-bezier(.22,.8,.2,1), background .28s ease;
+    }
+
+    .intro-fold-line-top { top: 0; }
+    .intro-fold-line-bottom { top: var(--intro-fold-closed); }
+
+    .intro-actions.is-expanded .intro-fold-line-bottom,
+    .intro-actions.open .intro-fold-line-bottom,
+    .intro-actions:focus-within .intro-fold-line-bottom { top: var(--intro-fold-open); background: rgba(255,255,255,.24); }
+
+    .intro-actions.is-expanded .intro-fold-line-top,
+    .intro-actions.open .intro-fold-line-top,
+    .intro-actions:focus-within .intro-fold-line-top { background: rgba(255,255,255,.24); }
+
+    .intro-fold-trigger {
+      position: absolute;
+      z-index: 3;
+      top: 0;
+      left: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      height: var(--intro-fold-closed);
+      border: 0;
+      padding: 0 10px 0 0;
+      background: transparent;
+      color: rgba(255,255,255,.82);
+      cursor: pointer;
+      pointer-events: auto;
+    }
+
+    .intro-fold-copy { display: flex; align-items: center; gap: 20px; min-width: 0; }
+    .intro-fold-kicker { color: rgba(255,255,255,.72); font-size: 10px; font-weight: 650; letter-spacing: .14em; white-space: nowrap; }
+    .intro-fold-note { overflow: hidden; color: rgba(255,255,255,.29); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+
+    .intro-fold-icon {
+      position: relative;
+      flex: 0 0 auto;
+      width: 30px;
+      height: 30px;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 50%;
+      color: rgba(255,255,255,.58);
+      transition: transform .3s ease, background .3s ease, color .3s ease;
+    }
+
+    .intro-fold-icon::before,
+    .intro-fold-icon::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 9px;
+      height: 1px;
+      background: currentColor;
+      transform: translate(-50%, -50%);
+    }
+
+    .intro-fold-icon::after { transform: translate(-50%, -50%) rotate(90deg); }
+
+    .intro-actions.is-expanded .intro-fold-icon,
+    .intro-actions.open .intro-fold-icon,
+    .intro-actions:focus-within .intro-fold-icon {
+      transform: rotate(45deg);
+      color: rgba(255,255,255,.82);
+      background: rgba(255,255,255,.045);
+    }
+
+    .intro-fold-panel {
+      position: absolute;
+      z-index: 2;
+      top: var(--intro-fold-closed);
+      left: 0;
+      right: 0;
+      padding-top: 14px;
+      opacity: 0;
+      transform: translateY(-7px);
+      pointer-events: none;
+      transition: opacity .28s ease, transform .32s cubic-bezier(.22,.8,.2,1);
+    }
+
+    .intro-actions.is-expanded .intro-fold-panel,
+    .intro-actions.open .intro-fold-panel,
+    .intro-actions:focus-within .intro-fold-panel {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .intro-actions.is-suppressed .intro-fold-line-bottom { top: var(--intro-fold-closed); }
+    .intro-actions.is-suppressed .intro-fold-icon { transform: none; background: transparent; color: rgba(255,255,255,.58); }
+    .intro-actions.is-suppressed .intro-fold-panel { opacity: 0; transform: translateY(-7px); pointer-events: none; }
+
+    .intro-input-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 112px 112px;
+      gap: 8px;
+    }
+
+    .intro .compound-field,
+    .intro .primary,
+    .intro .image-extract-trigger { height: 52px; min-width: 0; border-radius: 10px; }
+    .intro .hex-field { height: 50px; border-radius: 0 10px 10px 0; font-size: 15px; }
+    .intro .compound-field { grid-template-columns: 124px minmax(0, 1fr); background: rgba(3,4,5,.58); }
+    .intro .primary { padding: 0 14px; font-size: 12px; }
+    .intro .image-extract-trigger { padding: 0 12px; font-size: 11px; }
+    .intro-input-error { min-height: 18px; margin: 5px 0 3px; font-size: 10px; }
+
+    .intro-result-card {
+      grid-template-columns: 62px minmax(0, 1fr) auto;
+      gap: 14px;
+      min-height: 82px;
+      padding: 10px 11px;
+      border-radius: 12px;
+      background: rgba(5,6,7,.48);
+    }
+
+    .intro-result-card .swatch-large { width: 62px; border-radius: 9px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.2); }
+    .intro-result-card .swatch-large::after { display: none; }
+    .intro-result-copy { min-width: 0; }
+    .intro-result-card .result-hex { margin-bottom: 6px; color: rgba(255,255,255,.56); font-size: 10px; }
+    .intro-result-card .lch-result { margin: 0 0 4px; white-space: normal; }
+    .intro-result-card .lch-value { font-size: clamp(17px, 2vw, 24px); font-weight: 560; }
+    .intro-add-library { min-width: 96px; min-height: 38px; border-radius: 9px; font-size: 11px; }
+
+    .intro-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 18px;
+      border-top: 1px solid rgba(255,255,255,.075);
+      color: rgba(255,255,255,.3);
+      font-size: 10px;
+      letter-spacing: .035em;
+    }
+
+    .intro-footer a { color: rgba(255,255,255,.48); text-decoration: none; transition: color .18s ease; }
+    .intro-footer a:hover { color: rgba(255,255,255,.82); }
+
+    @media (hover: hover) and (pointer: fine) {
+      .intro-actions:not(.is-suppressed):hover .intro-fold-line-bottom { top: var(--intro-fold-open); background: rgba(255,255,255,.24); }
+      .intro-actions:not(.is-suppressed):hover .intro-fold-line-top { background: rgba(255,255,255,.24); }
+      .intro-actions:not(.is-suppressed):hover .intro-fold-icon { transform: rotate(45deg); color: rgba(255,255,255,.82); background: rgba(255,255,255,.045); }
+      .intro-actions:not(.is-suppressed):hover .intro-fold-panel { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    }
+
+    @media (max-width: 860px) {
+      :root { --intro-fold-open: 332px; }
+      .app { width: 100%; padding-top: 0; }
+      .charts-grid, .library, .cluster-panel, .stats-grid { width: min(720px, calc(100% - 28px)); }
+      .intro-shell { width: calc(100% - 34px); grid-template-rows: 70px minmax(0, 1fr) 60px; }
+      .intro-topbar { grid-template-columns: 1fr auto; }
+      .intro-system { display: none; }
+      .intro-hero { padding: 30px 0 24px; }
+      .intro-title { font-size: clamp(50px, 12vw, 86px); }
+      .intro-input-row { grid-template-columns: minmax(0, 1fr) 82px; }
+      .intro .image-extract-trigger { grid-column: 1 / -1; width: 100%; }
+    }
+
+    @media (max-width: 560px) {
+      :root { --intro-fold-open: 400px; }
+      .app { width: 100%; padding-bottom: 40px; }
+      .charts-grid, .library, .cluster-panel, .stats-grid { width: calc(100% - 20px); }
+      .intro { min-height: max(760px, 100svh); margin-bottom: 22px; }
+      .intro-shell { width: calc(100% - 24px); grid-template-rows: 64px minmax(0, 1fr) 56px; }
+      .intro-brand { font-size: 11px; }
+      .intro-hero { padding: 24px 0 18px; }
+      .intro-kicker { margin-bottom: 17px; }
+      .intro-title { font-size: clamp(45px, 16.5vw, 68px); }
+      .intro-title-cn { font-size: 21px; }
+      .intro-description { font-size: 11px; }
+      .intro-actions { width: 100%; margin-top: 22px; }
+      .intro-fold-copy { gap: 10px; }
+      .intro-fold-note { display: none; }
+      .intro-input-row { grid-template-columns: 1fr; }
+      .intro .primary, .intro .image-extract-trigger { width: 100%; }
+      .intro-result-card { grid-template-columns: 52px minmax(0, 1fr); }
+      .intro-result-card .swatch-large { width: 52px; }
+      .intro-add-library { grid-column: 1 / -1; width: 100%; }
+      .intro-footer { justify-content: flex-end; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .intro-pixel-canvas { display: none; }
+    }
   </style>
 </head>
 <body>
   <div class="app">
-    <header class="topbar">
-      <div class="brand" aria-label="Color Strategy Visualization Map">
-        <span class="brand-mark" aria-hidden="true">🐟</span>
-        <span class="brand-name">Color Strategy Visualization Map <span class="brand-tag">色彩策略可视化坐标图</span></span>
-      </div>
-      <span class="spec">sRGB · CIE Lab · Local Library</span>
-    </header>
+    <section id="introRoot" class="intro" aria-labelledby="introTitle">
+      <canvas id="introPixelCanvas" class="intro-pixel-canvas" aria-hidden="true"></canvas>
+      <div class="intro-pixel-grid" aria-hidden="true"></div>
+      <div class="intro-veil" aria-hidden="true"></div>
 
-    <section class="converter glass" aria-labelledby="converter-title">
-      <div>
-        <p class="eyebrow">COLOR INPUT TO CIE LCh</p>
-        <h1 id="converter-title">请输入色号</h1>
-        <p class="lede">选择 Hex、CIE Lab 或 CIE LCh 输入格式，查看颜色在色相、彩度与明度维度中的位置。当前颜色会临时显示，确认后才进入下方色库。</p>
-        <div class="input-row">
-          <div class="compound-field">
-            <span class="select-wrap">
-              <select id="inputType" class="type-select" aria-label="颜色输入格式">
-                <option value="hex">Hex RGB</option>
-                <option value="lab">CIE Lab</option>
-                <option value="lch">CIE LCh</option>
-              </select>
-            </span>
-            <input id="hexInput" class="hex-field" type="text" value="#81D8D0" maxlength="7" spellcheck="false" autocomplete="off" aria-label="颜色数值" aria-describedby="inputError" />
-          </div>
-          <button id="convertBtn" class="primary" type="button">转换颜色</button>
-          <button id="openImageExtractBtn" class="image-extract-trigger" type="button">从图片提取颜色</button>
-        </div>
-        <p id="inputError" class="error" role="status" aria-live="polite"></p>
-      </div>
+      <div class="intro-shell">
+        <header class="intro-topbar">
+          <div class="intro-brand">A Strategic Tool Designed by Xihan</div>
+          <span class="intro-system">CIE LCh · LOCAL COLOR ANALYSIS</span>
+        </header>
 
-      <div class="result-card" aria-live="polite">
-        <div id="largeSwatch" class="swatch-large" aria-hidden="true"></div>
-        <div>
-          <p id="resultHex" class="result-hex">HEX · #81D8D0</p>
-          <p class="result-title">转化结果 · CIE LCh</p>
-          <div class="lch-result"><span id="resultLch" class="lch-value">L 80.9 · C 28.4 · h 188.7°</span></div>
-          <div class="result-actions">
-            <button id="addBtn" class="secondary" type="button">添加到色库</button>
-            <span id="resultNote" class="lch-unit"></span>
+        <div class="intro-hero">
+          <div class="intro-poster">
+            <p class="intro-kicker">COLOR STRATEGY / LOCAL WORKSPACE</p>
+            <h1 id="introTitle" class="intro-title">Color Strategy<br>Visualization Map</h1>
+            <p class="intro-title-cn">色彩策略可视化坐标图</p>
+            <p class="intro-description">将不同来源的颜色统一转换为 CIE LCh，在同一坐标体系中观察色相、彩度与明度关系，并建立可持续整理的本地色库。</p>
+            <p class="intro-hint">移动指针，探索色相场</p>
+
+            <div id="introActions" class="intro-actions">
+              <div class="intro-fold-line intro-fold-line-top" aria-hidden="true"></div>
+              <div class="intro-fold-line intro-fold-line-bottom" aria-hidden="true"></div>
+              <button id="introFoldTrigger" class="intro-fold-trigger" type="button" aria-expanded="false" aria-controls="introFoldPanel">
+                <span class="intro-fold-copy">
+                  <span class="intro-fold-kicker">开始分析</span>
+                  <span class="intro-fold-note">输入颜色，或从图片提取</span>
+                </span>
+                <span class="intro-fold-icon" aria-hidden="true"></span>
+              </button>
+
+              <div id="introFoldPanel" class="intro-fold-panel">
+                <div class="intro-input-row">
+                  <div class="compound-field">
+                    <span class="select-wrap">
+                      <select id="inputType" class="type-select" aria-label="颜色输入格式">
+                        <option value="hex">Hex RGB</option>
+                        <option value="lab">CIE Lab</option>
+                        <option value="lch">CIE LCh</option>
+                      </select>
+                    </span>
+                    <input id="hexInput" class="hex-field" type="text" value="#81D8D0" maxlength="7" spellcheck="false" autocomplete="off" aria-label="颜色数值" aria-describedby="inputError" />
+                  </div>
+                  <button id="convertBtn" class="primary" type="button">转换</button>
+                  <button id="openImageExtractBtn" class="image-extract-trigger" type="button">上传图片</button>
+                </div>
+                <p id="inputError" class="error intro-input-error" role="status" aria-live="polite"></p>
+
+                <div class="result-card intro-result-card" aria-live="polite">
+                  <div id="largeSwatch" class="swatch-large" aria-hidden="true"></div>
+                  <div class="intro-result-copy">
+                    <p id="resultHex" class="result-hex">HEX · #81D8D0</p>
+                    <div class="lch-result"><span id="resultLch" class="lch-value">L 80.9 · C 28.4 · h 188.7°</span></div>
+                    <span id="resultNote" class="lch-unit"></span>
+                  </div>
+                  <button id="addBtn" class="secondary intro-add-library" type="button">加入色库</button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
+
+        <footer class="intro-footer">
+          <a href="#chartsGrid">查看色彩分布 <span aria-hidden="true">↓</span></a>
+        </footer>
       </div>
     </section>
 
@@ -1044,7 +1442,7 @@
           </div>
         </div>
         <div class="chart-wrap lh-chart-wrap">
-          <svg id="lhChart" class="chart-svg" viewBox="0 0 1000 465" role="img" aria-label="明度与色相矩形分布图，色相由330度断开展开"></svg>
+          <svg id="lhChart" class="chart-svg" viewBox="0 0 1000 465" preserveAspectRatio="none" role="img" aria-label="明度与色相矩形分布图，色相由330度断开展开"></svg>
         </div>
       </article>
     </section>
@@ -1327,7 +1725,9 @@
         extractStatusText: document.getElementById('extractStatusText'), extractToast: document.getElementById('extractToast'),
         extractModes: [...document.querySelectorAll('.extract-mode')],
         extractStack: document.getElementById('extractStack'), extractList: document.getElementById('extractResultList'),
-        extractRestore: document.getElementById('extractRestoreBtn')
+        extractRestore: document.getElementById('extractRestoreBtn'),
+        introRoot: document.getElementById('introRoot'), introCanvas: document.getElementById('introPixelCanvas'),
+        introActions: document.getElementById('introActions'), introFoldTrigger: document.getElementById('introFoldTrigger')
       };
 
       const EXTRACT_MODE_SETTINGS = {
@@ -5686,7 +6086,7 @@
       }
 
       function renderLhBase(root) {
-        const left = 32, top = 18, width = 936, height = 429;
+        const left = 3, top = 8, width = 994, height = 449;
         const geometry = { left, top, width, height };
         root.replaceChildren();
 
@@ -6115,6 +6515,272 @@
         convertCurrent(false);
       }
 
+      function setupIntroFold() {
+        if (!els.introActions || !els.introFoldTrigger) return;
+        const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+        let pinned = false;
+        let hovered = false;
+        let suppressedUntilLeave = false;
+
+        const sync = () => {
+          const focused = els.introActions.matches(':focus-within');
+          const expanded = !suppressedUntilLeave && (pinned || hovered || focused);
+          els.introActions.classList.toggle('is-suppressed', suppressedUntilLeave);
+          els.introActions.classList.toggle('open', pinned);
+          els.introActions.classList.toggle('is-expanded', expanded);
+          els.introFoldTrigger.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        };
+
+        if (finePointer) {
+          els.introActions.addEventListener('pointerenter', () => {
+            if (!suppressedUntilLeave) hovered = true;
+            sync();
+          });
+          els.introActions.addEventListener('pointerleave', () => {
+            hovered = false;
+            suppressedUntilLeave = false;
+            sync();
+          });
+        }
+        els.introActions.addEventListener('focusin', sync);
+        els.introActions.addEventListener('focusout', () => requestAnimationFrame(sync));
+        els.introFoldTrigger.addEventListener('click', () => {
+          const expanded = els.introFoldTrigger.getAttribute('aria-expanded') === 'true';
+          if (finePointer && expanded) {
+            pinned = false;
+            hovered = false;
+            suppressedUntilLeave = true;
+            els.introFoldTrigger.blur();
+          } else {
+            suppressedUntilLeave = false;
+            pinned = !pinned;
+          }
+          sync();
+          if (pinned && !touchUi) requestAnimationFrame(() => els.input.focus({ preventScroll: true }));
+        });
+        els.introRoot.addEventListener('keydown', event => {
+          if (event.key !== 'Escape' || !pinned) return;
+          pinned = false;
+          hovered = false;
+          suppressedUntilLeave = finePointer;
+          sync();
+          if (!finePointer) els.introFoldTrigger.focus({ preventScroll: true });
+        });
+        sync();
+      }
+
+      function setupIntroPixelField() {
+        const root = els.introRoot;
+        const canvas = els.introCanvas;
+        if (!root || !canvas) return;
+        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const context = canvas.getContext('2d', { alpha: true });
+        if (!context || reducedMotion) return;
+
+        const cellSize = touchUi ? 12 : 10;
+        let width = 0;
+        let height = 0;
+        let columns = 0;
+        let rows = 0;
+        let values = new Float32Array(0);
+        let targets = new Float32Array(0);
+        let colorField = new Uint8ClampedArray(0);
+        let activePointer = false;
+        let lastX = 0;
+        let lastY = 0;
+        let ambientTime = 0;
+        let animationFrame = 0;
+        let resizeFrame = 0;
+        let inView = true;
+
+        const indexOf = (x, y) => y * columns + x;
+        const smoothstep = (edge0, edge1, value) => {
+          const amount = clampNumber((value - edge0) / (edge1 - edge0), 0, 1);
+          return amount * amount * (3 - 2 * amount);
+        };
+
+        const edgeOpacity = (x, y) => {
+          const bottomDistance = height - y;
+          return smoothstep(0, Math.min(145, height * .16), bottomDistance);
+        };
+
+        const buildColorField = () => {
+          colorField = new Uint8ClampedArray(columns * rows * 3);
+          for (let row = 0; row < rows; row += 1) {
+            const normalizedY = (row + .5) / Math.max(rows, 1);
+            for (let column = 0; column < columns; column += 1) {
+              const normalizedX = (column + .5) / Math.max(columns, 1);
+              const hue = normalizeHue(
+                normalizedX * 305
+                + 26 * Math.sin(normalizedY * Math.PI * 1.85)
+                + 13 * Math.sin((normalizedX + normalizedY) * Math.PI * 2.05)
+              );
+              const lightness = 63 + Math.sin((normalizedX - normalizedY) * Math.PI) * 4;
+              const chroma = 55 + Math.cos(normalizedY * Math.PI) * 5;
+              const radians = hue * Math.PI / 180;
+              const preview = labToDisplayColor(lightness, chroma * Math.cos(radians), chroma * Math.sin(radians));
+              const offset = indexOf(column, row) * 3;
+              colorField[offset] = preview.rgb[0];
+              colorField[offset + 1] = preview.rgb[1];
+              colorField[offset + 2] = preview.rgb[2];
+            }
+          }
+        };
+
+        const resize = () => {
+          const bounds = root.getBoundingClientRect();
+          width = Math.max(1, Math.round(bounds.width));
+          height = Math.max(1, Math.round(bounds.height));
+          const pixelRatio = Math.max(1, Math.min(1.6, window.devicePixelRatio || 1));
+          canvas.width = Math.round(width * pixelRatio);
+          canvas.height = Math.round(height * pixelRatio);
+          canvas.style.width = `${width}px`;
+          canvas.style.height = `${height}px`;
+          context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+          columns = Math.ceil(width / cellSize);
+          rows = Math.ceil(height / cellSize);
+          values = new Float32Array(columns * rows);
+          targets = new Float32Array(columns * rows);
+          buildColorField();
+        };
+
+        const scheduleResize = () => {
+          cancelAnimationFrame(resizeFrame);
+          resizeFrame = requestAnimationFrame(resize);
+        };
+
+        const stamp = (x, y, velocityX = 0, velocityY = 0, power = 1) => {
+          const speed = Math.min(1, Math.hypot(velocityX, velocityY) / 72);
+          const radiusX = 23 + speed * 4.8;
+          const radiusY = 18 + speed * 3;
+          const velocityLength = Math.hypot(velocityX, velocityY);
+          const directionX = velocityLength > .001 ? velocityX / velocityLength : 1;
+          const directionY = velocityLength > .001 ? velocityY / velocityLength : 0;
+          const centerX = x / cellSize;
+          const centerY = y / cellSize;
+          const minimumX = Math.max(0, Math.floor(centerX - radiusX - 4));
+          const maximumX = Math.min(columns - 1, Math.ceil(centerX + radiusX + 4));
+          const minimumY = Math.max(0, Math.floor(centerY - radiusY - 4));
+          const maximumY = Math.min(rows - 1, Math.ceil(centerY + radiusY + 4));
+
+          for (let gridY = minimumY; gridY <= maximumY; gridY += 1) {
+            for (let gridX = minimumX; gridX <= maximumX; gridX += 1) {
+              const localX = gridX - centerX;
+              const localY = gridY - centerY;
+              const along = localX * directionX + localY * directionY;
+              const across = -localX * directionY + localY * directionX;
+              const distance = (along * along) / (radiusX * radiusX) + (across * across) / (radiusY * radiusY);
+              if (distance >= 1.42) continue;
+              const radius = Math.sqrt(Math.max(0, distance));
+              const core = 1 - smoothstep(.34, 1.12, radius);
+              const halo = (1 - smoothstep(.92, 1.42, radius)) * .24;
+              let intensity = (core * .9 + halo) * power;
+              if (along < 0) {
+                const tailWeight = Math.max(0, 1 - Math.abs(along) / (radiusX * .92))
+                  * Math.max(0, 1 - Math.abs(across) / (radiusY * .92));
+                intensity += tailWeight * .09 * (.35 + speed);
+              }
+              const index = indexOf(gridX, gridY);
+              if (intensity > targets[index]) targets[index] = intensity;
+            }
+          }
+        };
+
+        const feedPointer = (x, y) => {
+          if (!activePointer) {
+            activePointer = true;
+            lastX = x;
+            lastY = y;
+            stamp(x, y);
+            return;
+          }
+          const distanceX = x - lastX;
+          const distanceY = y - lastY;
+          const distance = Math.hypot(distanceX, distanceY);
+          const steps = Math.max(1, Math.ceil(distance / 14));
+          for (let step = 1; step <= steps; step += 1) {
+            const progress = step / steps;
+            stamp(lastX + distanceX * progress, lastY + distanceY * progress, distanceX, distanceY);
+          }
+          lastX = x;
+          lastY = y;
+        };
+
+        const ambient = () => {
+          ambientTime += .0022;
+          const x = width * (.5 + .22 * Math.sin(ambientTime * .62) + .05 * Math.sin(ambientTime * 1.16));
+          const y = height * (.46 + .14 * Math.sin(ambientTime * .71 + 1.1) + .04 * Math.cos(ambientTime * 1.08));
+          stamp(x, y, Math.cos(ambientTime * .62) * 8, Math.sin(ambientTime * .71) * 6, .92);
+        };
+
+        const render = () => {
+          animationFrame = 0;
+          if (!inView || document.hidden) return;
+          if (touchUi) ambient();
+          context.clearRect(0, 0, width, height);
+          for (let index = 0; index < values.length; index += 1) {
+            targets[index] *= .972;
+            values[index] += (targets[index] - values[index]) * .075;
+            values[index] *= .9976;
+            if (values[index] < .0065) {
+              values[index] = 0;
+              targets[index] = 0;
+              continue;
+            }
+            const gridX = index % columns;
+            const gridY = Math.floor(index / columns);
+            const colorOffset = index * 3;
+            const pixelX = gridX * cellSize + cellSize * .5;
+            const pixelY = gridY * cellSize + cellSize * .5;
+            const alpha = Math.min(.5, values[index] * .48) * edgeOpacity(pixelX, pixelY);
+            if (alpha < .002) continue;
+            context.fillStyle = `rgba(${colorField[colorOffset]},${colorField[colorOffset + 1]},${colorField[colorOffset + 2]},${alpha.toFixed(3)})`;
+            context.fillRect(gridX * cellSize, gridY * cellSize, cellSize + .35, cellSize + .35);
+            const gridAlpha = Math.min(.2, alpha * .58);
+            context.fillStyle = `rgba(224,228,232,${gridAlpha.toFixed(3)})`;
+            context.fillRect(gridX * cellSize, gridY * cellSize, cellSize + .35, .8);
+            context.fillRect(gridX * cellSize, gridY * cellSize, .8, cellSize + .35);
+          }
+          animationFrame = requestAnimationFrame(render);
+        };
+
+        const start = () => {
+          if (!animationFrame && inView && !document.hidden) animationFrame = requestAnimationFrame(render);
+        };
+
+        if (!touchUi) {
+          root.addEventListener('pointerenter', event => {
+            if (event.pointerType === 'touch') return;
+            const bounds = root.getBoundingClientRect();
+            activePointer = false;
+            feedPointer(event.clientX - bounds.left, event.clientY - bounds.top);
+          }, { passive: true });
+          root.addEventListener('pointermove', event => {
+            if (event.pointerType === 'touch') return;
+            const bounds = root.getBoundingClientRect();
+            feedPointer(event.clientX - bounds.left, event.clientY - bounds.top);
+          }, { passive: true });
+          root.addEventListener('pointerleave', () => { activePointer = false; }, { passive: true });
+        }
+
+        if ('IntersectionObserver' in window) {
+          const observer = new IntersectionObserver(entries => {
+            inView = entries[0] ? entries[0].isIntersecting : true;
+            if (inView) start();
+            else if (animationFrame) {
+              cancelAnimationFrame(animationFrame);
+              animationFrame = 0;
+            }
+          }, { threshold: .01 });
+          observer.observe(root);
+        }
+        document.addEventListener('visibilitychange', start);
+        if ('ResizeObserver' in window) new ResizeObserver(scheduleResize).observe(root);
+        else window.addEventListener('resize', scheduleResize, { passive: true });
+        resize();
+        start();
+      }
+
       // ---------- Event wiring and application bootstrap ----------
 
       els.convert.addEventListener('click', () => convertCurrent(false));
@@ -6256,6 +6922,8 @@
         });
       }
 
+      setupIntroFold();
+      setupIntroPixelField();
       syncViewportMode();
       convertCurrent(false, false);
       renderLibrary();
