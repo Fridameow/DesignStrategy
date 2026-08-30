@@ -1113,6 +1113,8 @@
       letter-spacing: .14em;
     }
 
+    html.touch-ui .intro-hint { display: none; }
+
     .intro-actions {
       position: relative;
       width: min(760px, calc(100% - 24px));
@@ -6595,6 +6597,7 @@
         const canvas = els.introCanvas;
         if (!root || !canvas) return;
         const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const touchPortraitQuery = window.matchMedia('(max-width: 560px) and (orientation: portrait)');
         const context = canvas.getContext('2d', { alpha: true });
         if (!context || reducedMotion) return;
 
@@ -6613,6 +6616,8 @@
         let animationFrame = 0;
         let resizeFrame = 0;
         let inView = true;
+        let mobileFieldHeight = 0;
+        let stableMobileField = false;
 
         const indexOf = (x, y) => y * columns + x;
         const smoothstep = (edge0, edge1, value) => {
@@ -6620,9 +6625,9 @@
           return amount * amount * (3 - 2 * amount);
         };
 
-        const edgeOpacity = (x, y) => {
-          const bottomDistance = height - y;
-          return smoothstep(0, Math.min(145, height * .16), bottomDistance);
+        const edgeOpacity = (x, y, visibleHeight = height) => {
+          const bottomDistance = visibleHeight - y;
+          return smoothstep(0, Math.min(145, visibleHeight * .16), bottomDistance);
         };
 
         const buildColorField = () => {
@@ -6650,8 +6655,24 @@
 
         const resize = () => {
           const bounds = root.getBoundingClientRect();
-          width = Math.max(1, Math.round(bounds.width));
-          height = Math.max(1, Math.round(bounds.height));
+          const nextWidth = Math.max(1, Math.round(bounds.width));
+          const nextStableMobileField = touchUi && touchPortraitQuery.matches;
+          if (nextStableMobileField && (!mobileFieldHeight || !stableMobileField || nextWidth !== width)) {
+            const rootStyles = getComputedStyle(document.documentElement);
+            const openHeight = parseFloat(rootStyles.getPropertyValue('--intro-fold-open')) || 0;
+            const currentFoldHeight = els.introActions
+              ? els.introActions.getBoundingClientRect().height
+              : openHeight;
+            mobileFieldHeight = Math.max(1, Math.round(bounds.height + Math.max(0, openHeight - currentFoldHeight)));
+          }
+          const nextHeight = nextStableMobileField
+            ? mobileFieldHeight
+            : Math.max(1, Math.round(bounds.height));
+          stableMobileField = nextStableMobileField;
+          if (nextWidth === width && nextHeight === height && values.length) return;
+          if (!nextStableMobileField) mobileFieldHeight = 0;
+          width = nextWidth;
+          height = nextHeight;
           const pixelRatio = Math.max(1, Math.min(1.6, window.devicePixelRatio || 1));
           canvas.width = Math.round(width * pixelRatio);
           canvas.height = Math.round(height * pixelRatio);
@@ -6739,6 +6760,9 @@
           if (!inView || document.hidden) return;
           if (touchUi) ambient();
           context.clearRect(0, 0, width, height);
+          const visibleHeight = stableMobileField
+            ? Math.min(height, root.getBoundingClientRect().height)
+            : height;
           for (let index = 0; index < values.length; index += 1) {
             targets[index] *= .972;
             values[index] += (targets[index] - values[index]) * .075;
@@ -6753,7 +6777,7 @@
             const colorOffset = index * 3;
             const pixelX = gridX * cellSize + cellSize * .5;
             const pixelY = gridY * cellSize + cellSize * .5;
-            const alpha = Math.min(.5, values[index] * .48) * edgeOpacity(pixelX, pixelY);
+            const alpha = Math.min(.5, values[index] * .48) * edgeOpacity(pixelX, pixelY, visibleHeight);
             if (alpha < .002) continue;
             context.fillStyle = `rgba(${colorField[colorOffset]},${colorField[colorOffset + 1]},${colorField[colorOffset + 2]},${alpha.toFixed(3)})`;
             context.fillRect(gridX * cellSize, gridY * cellSize, cellSize + .35, cellSize + .35);
