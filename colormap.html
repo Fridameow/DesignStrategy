@@ -1444,7 +1444,7 @@
           </div>
         </div>
         <div class="chart-wrap lh-chart-wrap">
-          <svg id="lhChart" class="chart-svg" viewBox="0 0 1000 465" preserveAspectRatio="none" role="img" aria-label="明度与色相矩形分布图，色相由330度断开展开"></svg>
+          <svg id="lhChart" class="chart-svg" viewBox="0 0 1000 465" preserveAspectRatio="xMinYMin meet" role="img" aria-label="明度与色相矩形分布图，色相由330度断开展开"></svg>
         </div>
       </article>
     </section>
@@ -6108,7 +6108,12 @@
       }
 
       function renderLhBase(root) {
-        const left = 3, top = 8, width = 994, height = 449;
+        const bounds = root.getBoundingClientRect();
+        const viewWidth = Math.max(32, Math.round(bounds.width || 1000));
+        const viewHeight = Math.max(32, Math.round(bounds.height || 465));
+        root.setAttribute('viewBox', `0 0 ${viewWidth} ${viewHeight}`);
+        root.setAttribute('preserveAspectRatio', 'xMinYMin meet');
+        const left = 3, top = 8, width = viewWidth - 6, height = viewHeight - 16;
         const geometry = { left, top, width, height };
         root.replaceChildren();
 
@@ -6982,9 +6987,15 @@
         });
       });
       els.extractRestore.addEventListener('click', restoreExtractResults);
+      let chartResizeFrame = 0;
       window.addEventListener('resize', () => {
         hideTooltip();
         resizeExtractPreviewFrame();
+        cancelAnimationFrame(chartResizeFrame);
+        chartResizeFrame = requestAnimationFrame(() => {
+          chartResizeFrame = 0;
+          if (state.visualizationMode === 'lh') renderCharts();
+        });
       });
       if (window.visualViewport) {
         window.visualViewport.addEventListener('resize', () => {
