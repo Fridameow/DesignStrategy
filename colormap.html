@@ -6597,9 +6597,13 @@
         const canvas = els.introCanvas;
         if (!root || !canvas) return;
         const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const mobileTouchQuery = window.matchMedia('(max-width: 560px)');
         const touchPortraitQuery = window.matchMedia('(max-width: 560px) and (orientation: portrait)');
         const context = canvas.getContext('2d', { alpha: true });
         if (!context || reducedMotion) return;
+
+        const smoothFieldCanvas = document.createElement('canvas');
+        const smoothFieldContext = smoothFieldCanvas.getContext('2d', { alpha: true });
 
         const cellSize = touchUi ? 12 : 10;
         let width = 0;
@@ -6617,6 +6621,7 @@
         let resizeFrame = 0;
         let inView = true;
         let mobileFieldHeight = 0;
+        let mobileTouchField = false;
         let stableMobileField = false;
 
         const indexOf = (x, y) => y * columns + x;
@@ -6651,12 +6656,27 @@
               colorField[offset + 2] = preview.rgb[2];
             }
           }
+          if (smoothFieldContext) {
+            smoothFieldCanvas.width = columns;
+            smoothFieldCanvas.height = rows;
+            const imageData = smoothFieldContext.createImageData(columns, rows);
+            for (let index = 0; index < columns * rows; index += 1) {
+              const colorOffset = index * 3;
+              const imageOffset = index * 4;
+              imageData.data[imageOffset] = colorField[colorOffset];
+              imageData.data[imageOffset + 1] = colorField[colorOffset + 1];
+              imageData.data[imageOffset + 2] = colorField[colorOffset + 2];
+              imageData.data[imageOffset + 3] = 255;
+            }
+            smoothFieldContext.putImageData(imageData, 0, 0);
+          }
         };
 
         const resize = () => {
           const bounds = root.getBoundingClientRect();
           const nextWidth = Math.max(1, Math.round(bounds.width));
-          const nextStableMobileField = touchUi && touchPortraitQuery.matches;
+          const nextMobileTouchField = touchUi && mobileTouchQuery.matches;
+          const nextStableMobileField = nextMobileTouchField && touchPortraitQuery.matches;
           if (nextStableMobileField && (!mobileFieldHeight || !stableMobileField || nextWidth !== width)) {
             const rootStyles = getComputedStyle(document.documentElement);
             const openHeight = parseFloat(rootStyles.getPropertyValue('--intro-fold-open')) || 0;
@@ -6668,6 +6688,7 @@
           const nextHeight = nextStableMobileField
             ? mobileFieldHeight
             : Math.max(1, Math.round(bounds.height));
+          mobileTouchField = nextMobileTouchField;
           stableMobileField = nextStableMobileField;
           if (nextWidth === width && nextHeight === height && values.length) return;
           if (!nextStableMobileField) mobileFieldHeight = 0;
@@ -6755,14 +6776,37 @@
           stamp(x, y, Math.cos(ambientTime * .62) * 8, Math.sin(ambientTime * .71) * 6, .92);
         };
 
+        const drawMobileGradient = visibleHeight => {
+          context.clearRect(0, 0, width, height);
+          context.save();
+          context.globalAlpha = .42;
+          context.imageSmoothingEnabled = true;
+          context.imageSmoothingQuality = 'high';
+          context.drawImage(smoothFieldCanvas, 0, 0, columns, rows, 0, 0, width, height);
+          context.globalAlpha = 1;
+          context.globalCompositeOperation = 'destination-in';
+          const fadeDepth = Math.min(145, visibleHeight * .16);
+          const mask = context.createLinearGradient(0, Math.max(0, visibleHeight - fadeDepth), 0, visibleHeight);
+          mask.addColorStop(0, 'rgba(0,0,0,1)');
+          mask.addColorStop(1, 'rgba(0,0,0,0)');
+          context.fillStyle = mask;
+          context.fillRect(0, 0, width, visibleHeight);
+          context.restore();
+        };
+
         const render = () => {
           animationFrame = 0;
           if (!inView || document.hidden) return;
-          if (touchUi) ambient();
-          context.clearRect(0, 0, width, height);
           const visibleHeight = stableMobileField
             ? Math.min(height, root.getBoundingClientRect().height)
             : height;
+          if (mobileTouchField) {
+            drawMobileGradient(visibleHeight);
+            animationFrame = requestAnimationFrame(render);
+            return;
+          }
+          if (touchUi) ambient();
+          context.clearRect(0, 0, width, height);
           for (let index = 0; index < values.length; index += 1) {
             targets[index] *= .972;
             values[index] += (targets[index] - values[index]) * .075;
