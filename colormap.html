@@ -590,6 +590,7 @@
     .cluster-panel-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
     .cluster-panel-title { margin: 0 0 6px; font-size: 17px; font-weight: 650; letter-spacing: -.02em; }
     .cluster-panel-subtitle { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
+    .cluster-panel-body[hidden] { display: none; }
     .cluster-explore {
       flex: 0 0 auto;
       min-height: 38px;
@@ -1038,23 +1039,16 @@
     }
 
     .intro-topbar {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
+      display: flex;
       align-items: center;
+      justify-content: center;
       border-bottom: 1px solid rgba(255,255,255,.075);
     }
 
     .intro-brand {
       color: rgba(255,255,255,.82);
-      font-size: 13px;
-      letter-spacing: -.015em;
-    }
-
-    .intro-system {
-      justify-self: center;
-      color: rgba(255,255,255,.3);
-      font-size: 10px;
-      letter-spacing: .15em;
+      font-size: 11px;
+      letter-spacing: .005em;
     }
 
     .intro-hero {
@@ -1089,8 +1083,9 @@
       margin: 0;
       font-size: clamp(58px, 8.4vw, 124px);
       font-weight: 520;
-      line-height: .94;
-      letter-spacing: -.055em;
+      line-height: .98;
+      letter-spacing: -.045em;
+      white-space: nowrap;
       text-wrap: balance;
     }
 
@@ -1140,12 +1135,10 @@
     .intro-fold-line-bottom { top: var(--intro-fold-closed); }
 
     .intro-actions.is-expanded .intro-fold-line-bottom,
-    .intro-actions.open .intro-fold-line-bottom,
-    .intro-actions:focus-within .intro-fold-line-bottom { top: var(--intro-fold-open); background: rgba(255,255,255,.24); }
+    .intro-actions.open .intro-fold-line-bottom { top: var(--intro-fold-open); background: rgba(255,255,255,.24); }
 
     .intro-actions.is-expanded .intro-fold-line-top,
-    .intro-actions.open .intro-fold-line-top,
-    .intro-actions:focus-within .intro-fold-line-top { background: rgba(255,255,255,.24); }
+    .intro-actions.open .intro-fold-line-top { background: rgba(255,255,255,.24); }
 
     .intro-fold-trigger {
       position: absolute;
@@ -1195,8 +1188,7 @@
     .intro-fold-icon::after { transform: translate(-50%, -50%) rotate(90deg); }
 
     .intro-actions.is-expanded .intro-fold-icon,
-    .intro-actions.open .intro-fold-icon,
-    .intro-actions:focus-within .intro-fold-icon {
+    .intro-actions.open .intro-fold-icon {
       transform: rotate(45deg);
       color: rgba(255,255,255,.82);
       background: rgba(255,255,255,.045);
@@ -1216,8 +1208,7 @@
     }
 
     .intro-actions.is-expanded .intro-fold-panel,
-    .intro-actions.open .intro-fold-panel,
-    .intro-actions:focus-within .intro-fold-panel {
+    .intro-actions.open .intro-fold-panel {
       opacity: 1;
       transform: translateY(0);
       pointer-events: auto;
@@ -1285,8 +1276,6 @@
       .app { width: 100%; padding-top: 0; }
       .charts-grid, .library, .cluster-panel, .stats-grid { width: min(720px, calc(100% - 28px)); }
       .intro-shell { width: calc(100% - 34px); grid-template-rows: 70px minmax(0, 1fr) 60px; }
-      .intro-topbar { grid-template-columns: 1fr auto; }
-      .intro-system { display: none; }
       .intro-hero { padding: 30px 0 24px; }
       .intro-title { font-size: clamp(50px, 12vw, 86px); }
       .intro-input-row { grid-template-columns: minmax(0, 1fr) 82px; }
@@ -1297,12 +1286,10 @@
       :root { --intro-fold-open: 400px; }
       .app { width: 100%; padding-bottom: 40px; }
       .charts-grid, .library, .cluster-panel, .stats-grid { width: calc(100% - 20px); }
-      .intro { min-height: max(760px, 100svh); margin-bottom: 22px; }
-      .intro-shell { width: calc(100% - 24px); grid-template-rows: 64px minmax(0, 1fr) 56px; }
-      .intro-brand { font-size: 11px; }
+      .intro-brand { font-size: 10px; }
       .intro-hero { padding: 24px 0 18px; }
       .intro-kicker { margin-bottom: 17px; }
-      .intro-title { font-size: clamp(45px, 16.5vw, 68px); }
+      .intro-title { font-size: clamp(32px, 9.6vw, 39px); }
       .intro-title-cn { font-size: 21px; }
       .intro-description { font-size: 11px; }
       .intro-actions { width: 100%; margin-top: 22px; }
@@ -1314,6 +1301,20 @@
       .intro-result-card .swatch-large { width: 52px; }
       .intro-add-library { grid-column: 1 / -1; width: 100%; }
       .intro-footer { justify-content: flex-end; }
+    }
+
+    @media (max-width: 560px) and (orientation: portrait) {
+      .intro { min-height: auto; }
+      .intro-shell {
+        min-height: auto;
+        grid-template-rows: 64px auto 56px;
+      }
+      .intro-actions {
+        height: var(--intro-fold-closed);
+        transition: height .4s cubic-bezier(.22,.8,.2,1);
+      }
+      .intro-actions.is-expanded,
+      .intro-actions.open { height: var(--intro-fold-open); }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -1331,7 +1332,6 @@
       <div class="intro-shell">
         <header class="intro-topbar">
           <div class="intro-brand">A Strategic Tool Designed by Xihan</div>
-          <span class="intro-system">CIE LCh · LOCAL COLOR ANALYSIS</span>
         </header>
 
         <div class="intro-hero">
@@ -1481,24 +1481,26 @@
       <div class="cluster-panel-head">
         <div>
           <h2 id="cluster-panel-title" class="cluster-panel-title">色彩聚落与推荐色</h2>
-          <p class="cluster-panel-subtitle">基于当前标签中已开启显示的样本推导。聚落与潜在推荐区域仅用于探索，不代表普遍有效的色彩标准。</p>
+          <p id="clusterPanelSubtitle" class="cluster-panel-subtitle">“全部”分类下默认不产生推荐色</p>
         </div>
         <button id="exploreRecommendationsBtn" class="cluster-explore" type="button" disabled>探索推荐色</button>
       </div>
-      <div class="cluster-metrics" aria-label="聚落分析摘要">
-        <span class="cluster-metric">分析标签 <strong id="clusterTagName">未选择</strong></span>
-        <span class="cluster-metric">当前样本 <strong id="clusterSampleCount">0</strong></span>
-        <span class="cluster-metric">有效样本 <strong id="clusterEffectiveCount">0</strong></span>
-        <span class="cluster-metric">聚落数量 <strong id="clusterCount">0</strong></span>
-      </div>
-      <p id="clusterNotice" class="cluster-notice">选择一个具体标签后，将自动识别当前数据中的主要聚落。</p>
-      <div id="clusterSummaries" class="cluster-summaries"></div>
-      <div id="recommendationSection" class="recommendation-section" hidden>
-        <div class="recommendation-head">
-          <h3 class="recommendation-title">潜在推荐色</h3>
-          <span id="recommendationNote" class="recommendation-note">推荐色正式添加前不会进入色库与统计。</span>
+      <div id="clusterPanelBody" class="cluster-panel-body" hidden>
+        <div class="cluster-metrics" aria-label="聚落分析摘要">
+          <span class="cluster-metric">分析标签 <strong id="clusterTagName">未选择</strong></span>
+          <span class="cluster-metric">当前样本 <strong id="clusterSampleCount">0</strong></span>
+          <span class="cluster-metric">有效样本 <strong id="clusterEffectiveCount">0</strong></span>
+          <span class="cluster-metric">聚落数量 <strong id="clusterCount">0</strong></span>
         </div>
-        <div id="recommendationGrid" class="recommendation-grid"></div>
+        <p id="clusterNotice" class="cluster-notice">选择一个具体标签后，将自动识别当前数据中的主要聚落。</p>
+        <div id="clusterSummaries" class="cluster-summaries"></div>
+        <div id="recommendationSection" class="recommendation-section" hidden>
+          <div class="recommendation-head">
+            <h3 class="recommendation-title">潜在推荐色</h3>
+            <span id="recommendationNote" class="recommendation-note">推荐色正式添加前不会进入色库与统计。</span>
+          </div>
+          <div id="recommendationGrid" class="recommendation-grid"></div>
+        </div>
       </div>
     </section>
 
@@ -1709,7 +1711,8 @@
         tagNameInput: document.getElementById('tagNameInput'), createTag: document.getElementById('createTagBtn'),
         tagDialogError: document.getElementById('tagDialogError'), cancelTag: document.getElementById('cancelTagDialogBtn'),
         confirmTag: document.getElementById('confirmTagDialogBtn'), closeTag: document.getElementById('closeTagDialogBtn'),
-        clusterPanel: document.getElementById('clusterPanel'), clusterTagName: document.getElementById('clusterTagName'),
+        clusterPanel: document.getElementById('clusterPanel'), clusterPanelSubtitle: document.getElementById('clusterPanelSubtitle'),
+        clusterPanelBody: document.getElementById('clusterPanelBody'), clusterTagName: document.getElementById('clusterTagName'),
         clusterSampleCount: document.getElementById('clusterSampleCount'), clusterEffectiveCount: document.getElementById('clusterEffectiveCount'),
         clusterCount: document.getElementById('clusterCount'), clusterNotice: document.getElementById('clusterNotice'),
         clusterSummaries: document.getElementById('clusterSummaries'), exploreRecommendations: document.getElementById('exploreRecommendationsBtn'),
@@ -4867,29 +4870,46 @@
         els.clusterCount.textContent = String(clusterState.clusters.length);
         els.clusterSummaries.replaceChildren();
         els.recommendationGrid.replaceChildren();
+        els.clusterPanelBody.hidden = true;
+        els.clusterPanel.classList.remove('is-expanded');
 
         if (!state.activeTagId) {
-          els.clusterNotice.textContent = '选择一个具体标签后，将自动识别当前数据中的主要聚落。';
+          els.clusterPanelSubtitle.textContent = '“全部”分类下默认不产生推荐色';
+          els.clusterNotice.textContent = '';
           els.clusterNotice.classList.remove('is-warning');
           els.exploreRecommendations.disabled = true;
+          els.exploreRecommendations.hidden = true;
           els.recommendationSection.hidden = true;
           return;
         }
+
+        els.exploreRecommendations.hidden = false;
         if (clusterState.effectiveCount < CLUSTER_CONFIG.minSamples) {
-          els.clusterNotice.textContent = '样本不足，无法形成稳定聚落。请至少开启 3 个彼此可区分的颜色。';
-          els.clusterNotice.classList.add('is-warning');
+          els.clusterPanelSubtitle.textContent = '当前标签样本不足，至少需要 3 个彼此可区分且已开启显示的颜色。';
           els.exploreRecommendations.disabled = true;
+          els.exploreRecommendations.textContent = '探索推荐色';
           els.recommendationSection.hidden = true;
           return;
         }
 
         const lowConfidence = clusterState.clusters.some(cluster => cluster.confidence === '低');
+        const expanded = clusterState.showRecommendationRange;
+        els.clusterPanelSubtitle.textContent = expanded
+          ? '基于当前标签中已开启显示的样本推导；聚落与潜在推荐区域仅用于探索。'
+          : '已识别当前标签的主要聚落，点击“探索推荐色”查看详细分析与潜在推荐色。';
+        els.exploreRecommendations.disabled = !clusterState.clusters.length;
+        els.exploreRecommendations.textContent = expanded ? '已生成推荐色' : '探索推荐色';
+        if (!expanded) {
+          els.recommendationSection.hidden = true;
+          return;
+        }
+
+        els.clusterPanelBody.hidden = false;
+        els.clusterPanel.classList.add('is-expanded');
         els.clusterNotice.textContent = lowConfidence
           ? '已基于当前样本推导聚落；样本较少，结果仅供参考。实线为实际聚落，探索后出现的虚线为潜在推荐区域。'
           : '已基于当前样本推导聚落。实线为实际聚落，探索后出现的虚线为潜在推荐区域。';
         els.clusterNotice.classList.toggle('is-warning', lowConfidence);
-        els.exploreRecommendations.disabled = !clusterState.clusters.length;
-        els.exploreRecommendations.textContent = clusterState.recommendations.length ? '已生成推荐色' : '探索推荐色';
 
         clusterState.clusters.forEach(cluster => {
           const card = document.createElement('article');
@@ -6523,7 +6543,7 @@
         let suppressedUntilLeave = false;
 
         const sync = () => {
-          const focused = els.introActions.matches(':focus-within');
+          const focused = finePointer && els.introActions.matches(':focus-within');
           const expanded = !suppressedUntilLeave && (pinned || hovered || focused);
           els.introActions.classList.toggle('is-suppressed', suppressedUntilLeave);
           els.introActions.classList.toggle('open', pinned);
@@ -6554,6 +6574,7 @@
           } else {
             suppressedUntilLeave = false;
             pinned = !pinned;
+            if (!pinned) els.introFoldTrigger.blur();
           }
           sync();
           if (pinned && !touchUi) requestAnimationFrame(() => els.input.focus({ preventScroll: true }));
